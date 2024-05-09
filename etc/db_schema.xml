@@ -10,7 +10,7 @@
         <column xsi:type="varchar" name="magento_attribute_name" nullable="true" length="255" />
         <column xsi:type="varchar" name="salesforce_attribute_name" nullable="true" length="255" />
         <column xsi:type="varchar" name="attribute_type" nullable="true" length="255" />
-        <column xsi:type="int" name="attribute_id" padding="11" unsigned="false" nullable="true" identity="false" comment="Attribute Id" />
+        <column xsi:type="int" name="attribute_id" padding="11" unsigned="true" nullable="true" identity="false" comment="Attribute Id" />
         <column xsi:type="varchar" name="default_value" nullable="true" length="255" />
         <column xsi:type="varchar" name="object_type" nullable="true" length="255" />
         <column xsi:type="varchar" name="magento_entity_type" nullable="true" length="255" />
@@ -127,7 +127,7 @@
 
     <table name="tnw_salesforce_entity_queue" resource="default" engine="innodb" comment="tnw_salesforce_entity_queue">
         <column xsi:type="varchar" name="queue_id" nullable="false" length="32" />
-        <column xsi:type="int" name="entity_id" padding="11" unsigned="false" nullable="false" identity="false" comment="Entity Id" />
+        <column xsi:type="int" name="entity_id" padding="11" unsigned="true" nullable="false" identity="false" comment="Entity Id" />
         <column xsi:type="varchar" name="entity_load" nullable="false" length="255" comment="Entity Load" />
         <column xsi:type="text" name="entity_load_additional" nullable="true" comment="Entity Load" />
         <column xsi:type="varchar" name="entity_type" nullable="false" length="255" comment="Entity Type" />
@@ -263,7 +263,7 @@
     </table>
     <table name="tnw_salesforce_entity_prequeue" resource="default" engine="innodb" comment="tnw_salesforce_entity_prequeue">
         <column xsi:type="int" name="prequeue_id" padding="10" unsigned="true" nullable="false" identity="true" comment="Queue Id" />
-        <column xsi:type="int" name="entity_id" padding="11" unsigned="false" nullable="false" identity="false" comment="Entity Id" />
+        <column xsi:type="int" name="entity_id" padding="11" unsigned="true" nullable="false" identity="false" comment="Entity Id" />
         <column xsi:type="varchar" name="entity_type" nullable="false" length="255" comment="Entity Type" />
         <column xsi:type="int" name="sync_type" default="0" padding="20" unsigned="false" nullable="false" identity="false" comment="sync_type" />
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="When create" />
