@@ -5,13 +5,13 @@
         "magento/framework": "^103.0",
         "tnw/soap-client": "~2",
         "tnw/marketing": "~2.10.1",
-        "php": "~8.1.0||~8.2.0"
+        "php": "~8"
     },
     "license": [
         "gpl-3.0"
     ],
     "type": "magento2-module",
-    "version": "2.10.68",
+    "version": "2.10.69",
     "autoload": {
         "files": [
             "registration.php"
