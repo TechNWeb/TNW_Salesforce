@@ -25,6 +25,10 @@ use TNW\Salesforce\Synchronize\Units;
  */
 abstract class LookupAbstract extends UnitAbstract
 {
+
+    protected $_cacheIterator = 0;
+    protected $_cachePageSize = 200;
+
     /**
      * @var string
      */
@@ -388,8 +392,10 @@ abstract class LookupAbstract extends UnitAbstract
      */
     public function getCacheObject(): DataObject
     {
-        if($this->emptyDataObject === null) {
-            $this->emptyDataObject = new DataObject();
+        $this->_cacheIterator++;
+        if($this->emptyDataObject === null || $this->_cacheIterator % $this->_cachePageSize === 0) {
+            $cachePage = intdiv($this->_cacheIterator, $this->_cachePageSize) + 1;
+            $this->emptyDataObject = new DataObject(['page' => $cachePage]);
         }
 
         return $this->emptyDataObject;
