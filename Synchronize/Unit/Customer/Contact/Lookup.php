@@ -81,8 +81,8 @@ class Lookup extends Synchronize\Unit\LookupAbstract
         $this->input->columns[] = $magentoIdField;
         $this->input->columns[] = $magentoWebsiteField;
 
-        $cacheObject = $this->getCacheObject();
         foreach ($this->entities() as $entity) {
+            $cacheObject = $this->getCacheObject();
             $email = strtolower((string)$entity->getEmail());
 
             $salesForceWebsiteId = '';

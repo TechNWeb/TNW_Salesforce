@@ -35,9 +35,9 @@ class ByContact extends Lookup
         $this->input->columns[] = 'Account.OwnerId';
         $this->input->columns[] = 'Account.Name';
 
-        $cacheObject = $this->getCacheObject();
 
         foreach ($this->entities() as $entity) {
+            $cacheObject = $this->getCacheObject();
             $salesForceWebsiteId = '';
             if ($this->customerConfigShare->isWebsiteScope()) {
                 $salesForceWebsiteId = (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');

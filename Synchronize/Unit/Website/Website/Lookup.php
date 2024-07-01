@@ -69,8 +69,8 @@ class Lookup extends Synchronize\Unit\LookupAbstract
         $this->input->columns[] = $magentoIdField;
         $this->input->columns[] = 'OwnerId';
 
-        $cacheObject = $this->getCacheObject();
         foreach ($this->entities() as $entity) {
+            $cacheObject = $this->getCacheObject();
             $this->input[$cacheObject]['OR'][$codeField]['IN'][] = $entity->getCode();
             $this->input[$cacheObject]['OR'][$magentoIdField]['IN'][] = (int)$entity->getId();
         }
