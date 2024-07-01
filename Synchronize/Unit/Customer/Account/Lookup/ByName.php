@@ -82,9 +82,10 @@ class ByName extends Synchronize\Unit\LookupAbstract
         $this->input->columns['name'] = 'Name';
 
         foreach ($this->entities() as $entity) {
+            $cacheObject = $this->getCacheObject();
             $company = $this->valueCompany($entity);
-            !empty($company) && $this->input[$this->getCacheObject()]['AND']['']['OR']['Name']['IN'][] = $company;
-            !empty($entity->getData('sforce_account_id')) && $this->input[$this->getCacheObject()]['AND']['']['OR']['Id']['IN'][] = $entity->getData('sforce_account_id');
+            !empty($company) && $this->input[$cacheObject]['AND']['']['OR']['Name']['IN'][] = $company;
+            !empty($entity->getData('sforce_account_id')) && $this->input[$cacheObject]['AND']['']['OR']['Id']['IN'][] = $entity->getData('sforce_account_id');
         }
 
         $this->input->from = 'Account';
