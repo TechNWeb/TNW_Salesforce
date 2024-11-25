@@ -44,11 +44,14 @@ class ByContact extends Lookup
             }
             $salesForceWebsites = [''];
             $salesForceWebsiteId && $salesForceWebsites[] = $salesForceWebsiteId;
-            foreach ($salesForceWebsites as $website) {
-                $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
-            }
+
             $email = strtolower((string)$entity->getEmail());
-            $email && $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
+            if (!empty($email)) {
+                $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
+                foreach ($salesForceWebsites as $website) {
+                    $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
+                }
+            }
 
             $magentoId = $entity->getId();
             if (!empty($magentoId)) {
