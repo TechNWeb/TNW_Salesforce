@@ -70,7 +70,7 @@ class Lookup extends Synchronize\Unit\LookupAbstract
     public function processInput()
     {
         $magentoIdField = 'tnw_mage_basic__Magento_ID__c';
-        $magentoWebsiteField = 'tnw_mage_basic__Magento_Website__c';
+        $websiteField = 'tnw_mage_basic__Magento_Website__c';
 
         $this->input->columns[] = 'ID';
         $this->input->columns[] = 'AccountId';
@@ -79,36 +79,32 @@ class Lookup extends Synchronize\Unit\LookupAbstract
         $this->input->columns[] = 'Email';
         $this->input->columns[] = 'OwnerId';
         $this->input->columns[] = $magentoIdField;
-        $this->input->columns[] = $magentoWebsiteField;
+        $this->input->columns[] = $websiteField;
 
         foreach ($this->entities() as $entity) {
             $cacheObject = $this->getCacheObject();
-            $email = strtolower((string)$entity->getEmail());
-
             $salesForceWebsiteId = '';
             if ($this->customerConfigShare->isWebsiteScope()) {
+                $salesForceWebsiteId = (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');
+            }
+            $salesForceWebsites = [''];
+            $salesForceWebsiteId && $salesForceWebsites[] = $salesForceWebsiteId;
 
-                $website = $this->load()->entityByType($entity, 'website');
-                if ($website) {
-                    $salesForceWebsiteId = $website->getData('salesforce_id');
-                }
-
-                $this->input[$cacheObject]['AND'][$salesForceWebsiteId]['AND'][$magentoWebsiteField]['IN'][] = '';
-                if ($salesForceWebsiteId) {
-                    $this->input[$cacheObject]['AND'][$salesForceWebsiteId]['AND'][$magentoWebsiteField]['IN'][] = $salesForceWebsiteId;
+            $email = strtolower((string)$entity->getEmail());
+            if (!empty($email)) {
+                $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
+                foreach ($salesForceWebsites as $website) {
+                    $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
                 }
             }
-            $email && $this->input[$cacheObject]['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
 
             $magentoId = $entity->getId();
             if (!empty($magentoId)) {
-                $this->input[$cacheObject]['OR'][$magentoIdField]['IN'][] = $magentoId;
+                $this->input[$cacheObject]['AND']['Global']['OR'][$magentoIdField]['IN'][] = $magentoId;
             }
         }
 
         $this->input->from = 'Contact';
-
-        return true;
     }
 
     /**
