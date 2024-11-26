@@ -29,5 +29,7 @@
     <event name="tnw_salesforce_mapper_delete_commit_after">
         <observer name="tnw_restart_consumers" instance="TNW\Salesforce\Observer\RestartConsumers"/>
     </event>
-
+    <event name="cron_job_run">
+        <observer name="tnw_salesforce_cron_entities_sync" instance="TNW\Salesforce\Observer\SyncEntitiesDispatch" />
+    </event>
 </config>

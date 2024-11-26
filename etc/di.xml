@@ -1127,4 +1127,10 @@
             <argument name="cleanableExecutorsList" xsi:type="object">TNW\Salesforce\Service\Model\Grid\GetColumnsDataItems\CleanableObjectsList</argument>
         </arguments>
     </type>
+    <type name="Symfony\Component\Console\Command\Command">
+        <plugin name="tnw_salesforce_console_command_entities_sync" type="TNW\Salesforce\Plugin\Console\Command"/>
+    </type>
+    <type name="Magento\Framework\MessageQueue\PublisherInterface">
+        <plugin name="tnw_salesforce_message_queue_publisher_entities_sync" type="TNW\Salesforce\Plugin\MessageQueue\Publisher"/>
+    </type>
 </config>
