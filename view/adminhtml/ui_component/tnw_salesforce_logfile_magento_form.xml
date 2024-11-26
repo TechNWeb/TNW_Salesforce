@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<form xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">
+                tnw_salesforce_logfile_magento_form.tnw_salesforce_log_magento_listing_data_source
+            </item>
+        </item>
+        <item name="label" xsi:type="string" translate="true">View/Download Log File</item>
+        <item name="template" xsi:type="string">templates/form/collapsible</item>
+    </argument>
+    <settings>
+        <buttons>
+            <button name="back">
+                <url path="*/*/index"/>
+                <class>back</class>
+                <label translate="true">Back</label>
+            </button>
+        </buttons>
+        <namespace>tnw_salesforce_logfile_magento_form</namespace>
+        <dataScope>data</dataScope>
+        <deps>
+            <dep>tnw_salesforce_logfile_magento_form.tnw_salesforce_log_magento_listing_data_source</dep>
+        </deps>
+    </settings>
+    <dataSource name="tnw_salesforce_log_magento_listing_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="submit_url" xsi:type="url" path="mui/index/render"/>
+                </item>
+            </argument>
+        </argument>
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/form/provider</item>
+            </item>
+        </argument>
+        <dataProvider class="TNW\Salesforce\Ui\DataProvider\FileLog\Form\DataProvider"
+                      name="tnw_salesforce_log_magento_listing_data_source">
+            <settings>
+                <requestFieldName>id</requestFieldName>
+                <primaryFieldName>id</primaryFieldName>
+            </settings>
+        </dataProvider>
+    </dataSource>
+    <fieldset name="general">
+        <argument name="data" xsi:type="array">
+            <item name="config" xsi:type="array">
+                <item name="label" xsi:type="string" translate="true">Log Information</item>
+            </item>
+        </argument>
+        <field name="name" formElement="input" sortOrder="30">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="source" xsi:type="string">name</item>
+                    <item name="elementTmpl" xsi:type="string">TNW_Salesforce/form/element/download</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">File name</label>
+            </settings>
+        </field>
+        <field name="content" formElement="input" sortOrder="50">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="id" xsi:type="string">content</item>
+                    <item name="source" xsi:type="string">content</item>
+                    <item name="elementTmpl" xsi:type="string">TNW_Salesforce/form/element/raw</item>
+                </item>
+            </argument>
+            <settings>
+                <dataType>text</dataType>
+                <label translate="true">Content</label>
+            </settings>
+        </field>
+        <field name="load_more" formElement="button" sortOrder="60">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="title" xsi:type="string">Load More</item>
+                    <item name="component" xsi:type="string">TNW_Salesforce/js/form/element/load-more</item>
+                </item>
+            </argument>
+        </field>
+    </fieldset>
+</form>

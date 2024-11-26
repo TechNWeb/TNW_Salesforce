@@ -41,6 +41,10 @@ class Config extends DataObject implements ConfigInterface
     public const SYNCHRONIZATION_NEED_REFRESH_GRIDS = 'tnwsforce_general/synchronization/need_refresh_grids';
     public const SYNCHRONIZATION_NEED_UPDATE_RELATION_STATUS = 'tnwsforce_general/synchronization/need_update_relation_status';
 
+    public const SALESFORCE_LOG_DIRECTORY = 'sforce';
+
+    private const LOG_LINES_COUNT_XML = 'tnwsforce_general/debug/log_lines_count';
+
     /**
      * Base batch limit for simple sync
      */
@@ -416,6 +420,16 @@ class Config extends DataObject implements ConfigInterface
     public function getLogStatus($websiteId = null)
     {
         return (int)$this->getStoreConfig('tnwsforce_general/debug/logstatus', $websiteId);
+    }
+
+    /**
+     * Get lines count to display.
+     *
+     * @return int
+     */
+    public function getLinesCount(): int
+    {
+        return (int)$this->scopeConfig->getValue(self::LOG_LINES_COUNT_XML);
     }
 
     /**

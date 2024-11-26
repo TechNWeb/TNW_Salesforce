@@ -179,6 +179,10 @@
                     <label>Log clean up</label>
                     <comment>Automatically clean up old log files older than X number of days</comment>
                 </field>
+                <field id="log_lines_count" translate="label" type="text" sortOrder="3" showInDefault="1" showInWebsite="0">
+                    <label>Display lines count</label>
+                    <comment>Count of the lines that will be loaded for display</comment>
+                </field>
 
             </group>
         </section>

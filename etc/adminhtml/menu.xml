@@ -29,6 +29,14 @@
              translate="title" module="TNW_Salesforce" sortOrder="90" parent="TNW_Salesforce::tools"
              resource="TNW_Salesforce::tools_log"/>
 
+        <add id="TNW_Salesforce::tools_sync_log" action="tnw_salesforce/logfile_sync/index" title="Synchronization Log (Files)"
+             translate="title" module="TNW_Salesforce" sortOrder="100" parent="TNW_Salesforce::tools"
+             resource="TNW_Salesforce::tools_sync_log"/>
+
+        <add id="TNW_Salesforce::tools_magento_log" action="tnw_salesforce/logfile_magento/index" title="Magento Log"
+             translate="title" module="TNW_Salesforce" sortOrder="110" parent="TNW_Salesforce::tools"
+             resource="TNW_Salesforce::tools_magento_log"/>
+
         <!-- Customer menu -->
         <add id="TNW_Salesforce::tnw_customer" title="Salesforce" module="TNW_Salesforce" sortOrder="50"
              dependsOnModule="TNW_Salesforce" parent="Magento_Customer::customer"

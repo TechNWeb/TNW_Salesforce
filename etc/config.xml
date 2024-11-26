@@ -32,6 +32,7 @@
                 <logbaseday>7</logbaseday>
                 <clearsystemlogs>1</clearsystemlogs>
                 <debugcleardays>30</debugcleardays>
+                <log_lines_count>250</log_lines_count>
             </debug>
         </tnwsforce_general>
         <tnwsforce_customer>

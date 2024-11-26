@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<listing xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:noNamespaceSchemaLocation="urn:magento:module:Magento_Ui:etc/ui_configuration.xsd">
+    <argument name="data" xsi:type="array">
+        <item name="js_config" xsi:type="array">
+            <item name="provider" xsi:type="string">
+                tnw_salesforce_logfile_sync_listing.tnw_salesforce_logfile_sync_listing_data_source
+            </item>
+            <item name="deps" xsi:type="string">
+                tnw_salesforce_logfile_sync_listing.tnw_salesforce_logfile_sync_listing_data_source
+            </item>
+        </item>
+        <item name="spinner" xsi:type="string">field_log_columns</item>
+    </argument>
+
+    <dataSource name="tnw_salesforce_logfile_sync_listing_data_source">
+        <argument name="dataProvider" xsi:type="configurableObject">
+            <argument name="class" xsi:type="string">SynchronizationLogDataProvider</argument>
+            <argument name="name" xsi:type="string">tnw_salesforce_logfile_sync_listing_data_source</argument>
+            <argument name="primaryFieldName" xsi:type="string">id</argument>
+            <argument name="requestFieldName" xsi:type="string">id</argument>
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="update_url" xsi:type="url" path="mui/index/render"/>
+                    <item name="storageConfig" xsi:type="array">
+                        <item name="indexField" xsi:type="string">id</item>
+                    </item>
+                </item>
+            </argument>
+        </argument>
+        <argument name="data" xsi:type="array">
+            <item name="js_config" xsi:type="array">
+                <item name="component" xsi:type="string">Magento_Ui/js/grid/provider</item>
+            </item>
+        </argument>
+    </dataSource>
+    <listingToolbar>
+        <columnsControls name="columns_controls"/>
+        <filters name="listing_filters"/>
+        <filterSearch name="name">
+            <settings>
+                <placeholder>Search by name</placeholder>
+            </settings>
+        </filterSearch>
+        <paging name="listing_paging"/>
+    </listingToolbar>
+    <columns name="field_log_columns">
+        <column name="time" class="Magento\Ui\Component\Listing\Columns\Date"
+                component="Magento_Ui/js/grid/columns/date" sortOrder="10">
+            <settings>
+                <filter>dateRange</filter>
+                <dataType>date</dataType>
+                <label translate="true">Time</label>
+                <sorting>desc</sorting>
+            </settings>
+        </column>
+        <column name="name" sortOrder="20">
+            <settings>
+                <filter>text</filter>
+                <label translate="true">Name</label>
+            </settings>
+        </column>
+        <column name="size">
+            <settings>
+                <filter>textRange</filter>
+                <label translate="true">Size, Bytes</label>
+            </settings>
+        </column>
+        <actionsColumn name="actions" class="TNW\Salesforce\Ui\Component\Listing\Columns\LogFileActions">
+            <argument name="data" xsi:type="array">
+                <item name="config" xsi:type="array">
+                    <item name="viewUrl" xsi:type="string">tnw_salesforce/logfile_sync/view</item>
+                    <item name="downloadUrl" xsi:type="string">tnw_salesforce/logfile_file/download</item>
+                </item>
+            </argument>
+            <settings>
+                <indexField>id</indexField>
+            </settings>
+        </actionsColumn>
+    </columns>
+</listing>

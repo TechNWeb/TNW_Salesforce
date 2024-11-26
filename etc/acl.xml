@@ -13,6 +13,8 @@
                 <resource id="TNW_Salesforce::salesforce" title="TNW_Salesforce">
                     <resource id="TNW_Salesforce::tools" title="Tools">
                         <resource id="TNW_Salesforce::tools_log" title="Log"/>
+                        <resource id="TNW_Salesforce::tools_sync_log" title="Synchornization File Log"/>
+                        <resource id="TNW_Salesforce::tools_magento_log" title="Magento File Log"/>
                         <resource id="TNW_Salesforce::tools_login" title="Login"/>
                     </resource>
                 </resource>

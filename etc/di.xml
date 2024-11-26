@@ -583,10 +583,38 @@
             <argument name="resourceModel" xsi:type="string">\TNW\Salesforce\Model\ResourceModel\Log</argument>
         </arguments>
     </virtualType>
+    <virtualType name="TNW\Salesforce\Model\ResourceModel\Log\File\Synchronization\Grid\CollectionFactory"
+                 type="TNW\Salesforce\Model\ResourceModel\Log\File\Grid\CollectionFactory">
+        <arguments>
+            <argument name="instanceName" xsi:type="string">
+                TNW\Salesforce\Model\ResourceModel\Log\File\Synchronization\Grid\Collection
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="SynchronizationLogFormDataProvider" type="TNW\Salesforce\Ui\DataProvider\FileLog\Form\DataProvider">
+        <arguments>
+            <argument name="collectionFactory" xsi:type="object">
+                TNW\Salesforce\Model\ResourceModel\Log\File\Synchronization\Grid\CollectionFactory
+            </argument>
+        </arguments>
+    </virtualType>
+    <virtualType name="SynchronizationLogDataProvider" type="TNW\Salesforce\Ui\DataProvider\FileLog\DataProvider">
+        <arguments>
+            <argument name="collectionFactory" xsi:type="object">
+                TNW\Salesforce\Model\ResourceModel\Log\File\Synchronization\Grid\CollectionFactory
+            </argument>
+        </arguments>
+    </virtualType>
     <type name="Magento\Framework\View\Element\UiComponent\DataProvider\CollectionFactory">
         <arguments>
             <argument name="collections" xsi:type="array">
                 <item name="tnw_salesforce_log_data_source" xsi:type="string">salesforceLogSearchResult</item>
+                <item name="tnw_salesforce_log_file_listing_data_source" xsi:type="string">
+                    TNW\Salesforce\Model\ResourceModel\Log\File\Sync\Grid\Collection
+                </item>
+                <item name="tnw_salesforce_log_magento_listing_data_source" xsi:type="string">
+                    TNW\Salesforce\Model\ResourceModel\Log\File\Grid\Collection
+                </item>
             </argument>
         </arguments>
     </type>
