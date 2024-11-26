@@ -364,4 +364,24 @@ class Queue extends AbstractDb
 
         return $this->getConnection()->fetchCol($select, ['queue_id' => $queueId, 'entity_type' => $entityType]);
     }
+
+    /**
+     * @param array $entityIds
+     * @return array
+     */
+    public function getDependentIds($entityIds)
+    {
+        $connection = $this->getConnection();
+        $select = $connection->select()
+            ->from([
+                'relation_table' => $this->getTable('tnw_salesforce_entity_queue_relation')
+            ])
+            ->joinLeft(
+                ['queue_table' => $this->getTable('tnw_salesforce_entity_queue')],
+                'queue_table.queue_id = relation_table.parent_id'
+            )
+            ->where($connection->prepareSqlCondition('queue_table .queue_id', ['in' => $entityIds]));
+
+        return $connection->fetchCol($select);
+    }
 }
