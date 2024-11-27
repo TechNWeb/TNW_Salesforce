@@ -47,9 +47,9 @@ class ByContact extends Lookup
 
             $email = strtolower((string)$entity->getEmail());
             if (!empty($email)) {
-                $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
+                $this->input[$cacheObject]['AND']['Global']['OR'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
                 foreach ($salesForceWebsites as $website) {
-                    $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
+                    $this->input[$cacheObject]['AND']['Global']['OR'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
                 }
             }
 
@@ -63,7 +63,6 @@ class ByContact extends Lookup
 
         $this->input->from = 'Contact';
     }
-
     /**
      * Prepare Record
      *
