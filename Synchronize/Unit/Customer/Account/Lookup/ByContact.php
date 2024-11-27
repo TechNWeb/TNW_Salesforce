@@ -40,16 +40,16 @@ class ByContact extends Lookup
             $cacheObject = $this->getCacheObject();
             $salesForceWebsiteId = '';
             if ($this->customerConfigShare->isWebsiteScope()) {
-                $salesForceWebsiteId = (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');
+                $salesForceWebsiteId = random_int(100, 1000);// (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');
             }
             $salesForceWebsites = [''];
             $salesForceWebsiteId && $salesForceWebsites[] = $salesForceWebsiteId;
 
             $email = strtolower((string)$entity->getEmail());
             if (!empty($email)) {
-                $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
+                $this->input[$cacheObject]['AND']['Global']['OR'][$salesForceWebsiteId]['AND']['Email']['IN'][] = $email;
                 foreach ($salesForceWebsites as $website) {
-                    $this->input[$cacheObject]['AND']['Global']['AND'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
+                    $this->input[$cacheObject]['AND']['Global']['OR'][$salesForceWebsiteId]['AND'][$websiteField]['IN'][] = $website;
                 }
             }
 
@@ -63,7 +63,6 @@ class ByContact extends Lookup
 
         $this->input->from = 'Contact';
     }
-
     /**
      * Prepare Record
      *
