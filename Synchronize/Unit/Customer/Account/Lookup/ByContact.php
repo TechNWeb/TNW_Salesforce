@@ -40,7 +40,7 @@ class ByContact extends Lookup
             $cacheObject = $this->getCacheObject();
             $salesForceWebsiteId = '';
             if ($this->customerConfigShare->isWebsiteScope()) {
-                $salesForceWebsiteId = random_int(100, 1000);// (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');
+                $salesForceWebsiteId = (string)$this->load()->entityByType($entity, 'website')->getData('salesforce_id');
             }
             $salesForceWebsites = [''];
             $salesForceWebsiteId && $salesForceWebsites[] = $salesForceWebsiteId;
