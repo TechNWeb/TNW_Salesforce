@@ -43,7 +43,7 @@ class Input extends SplObjectStorage
             $entities = iterator_to_array($this);
         }
 
-        return sprintf('SELECT %s FROM %s WHERE %s', $this->select($this->columns), $this->from, $this->where($entities));
+        return sprintf('SELECT %s FROM %s WHERE %s ORDER BY CreatedDate DESC', $this->select($this->columns), $this->from, $this->where($entities));
     }
 
     /**
