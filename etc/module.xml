@@ -6,7 +6,7 @@
   -->
 
 <config xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="urn:magento:framework:Module/etc/module.xsd">
-    <module name="TNW_Salesforce" setup_version="2.7.123">
+    <module name="TNW_Salesforce" setup_version="2.9.65">
         <sequence>
             <module name="Magento_Config"/>
             <module name="Magento_Customer"/>
