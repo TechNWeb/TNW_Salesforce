@@ -49,7 +49,7 @@ class Filesystem extends Base
     /**
      * @param array $record
      */
-    public function write(array $record): void
+    public function write(array|\Monolog\LogRecord $record): void
     {
         if (!$this->salesforceConfig->getLogStatus()) {
             return;
