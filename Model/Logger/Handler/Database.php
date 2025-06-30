@@ -53,7 +53,7 @@ class Database extends AbstractProcessingHandler
      * @param  array $record
      * @return void
      */
-    protected function write(array $record): void
+    protected function write(array|\Monolog\LogRecord $record): void
     {
         try {
             if (!$this->salesforceConfig->getDbLogStatus()) {
