@@ -138,7 +138,7 @@
         <column xsi:type="varchar" name="status" nullable="false" length="30" default="new" comment="Status" />
         <column xsi:type="varchar" length="255" name="message" nullable="true" comment="Message" />
         <column xsi:type="varchar" name="status_code" length="32" nullable="true" comment="Status code"/>
-        <column xsi:type="varchar" name="code" nullable="false" length="32" comment="Code" />
+        <column xsi:type="varchar" name="code" nullable="false" length="64" comment="Code" />
         <column xsi:type="varchar" name="description" nullable="false" length="255" comment="Description" />
         <column xsi:type="smallint" name="website_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Website Id" />
         <column xsi:type="varchar" name="transaction_uid" nullable="true" length="32" comment="Transaction Uid" />
