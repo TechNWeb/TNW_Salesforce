@@ -40,7 +40,7 @@ class EntityLoader extends EntityLoaderAbstract implements EntityPreLoaderInterf
         Load                $loadSubEntities,
         array               $loaders,
         array               $afterLoadExecutors = [],
-        SalesforceIdStorage $salesforceIdStorage = null
+        ?SalesforceIdStorage $salesforceIdStorage = null
     ) {
         parent::__construct($salesforceIdStorage);
         $this->loadSubEntities = $loadSubEntities;

@@ -120,20 +120,20 @@ class Load extends UnitAbstract
         $magentoType,
         array $queues,
         array $loaders,
-        Units $units,
-        Group $group,
-        IdentificationInterface $identification,
-        HashInterface $hash,
-        Objects $objects,
-        PreLoadEntities $preLoadEntities,
-        GetDependenceIdsByEntityType $getDependenceIdsByEntityType,
-        GetQueuesByIds $getQueuesByIds,
-        SubEntitiesLoad $loadSubEntities,
+        Units                              $units,
+        Group                              $group,
+        IdentificationInterface            $identification,
+        HashInterface                      $hash,
+        Objects                            $objects,
+        PreLoadEntities                    $preLoadEntities,
+        GetDependenceIdsByEntityType       $getDependenceIdsByEntityType,
+        GetQueuesByIds                     $getQueuesByIds,
+        SubEntitiesLoad                    $loadSubEntities,
         GetDependenceQueueIdsGroupedByCode $getDependenceQueueIdsGroupedByCode,
-        SalesforceIdStorage $entityObject = null,
-        MassLoadObjectIds $massLoadObjectIds,
-        array $entityLoaders = [],
-        array $entityTypeMapping = []
+        MassLoadObjectIds                  $massLoadObjectIds,
+        ?SalesforceIdStorage               $entityObject = null,
+        array                              $entityLoaders = [],
+        array                              $entityTypeMapping = []
     ) {
         parent::__construct($name, $units, $group);
         $this->magentoType = $magentoType;

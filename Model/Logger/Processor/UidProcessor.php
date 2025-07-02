@@ -37,7 +37,7 @@ class UidProcessor
      * @param array $record
      * @return array
      */
-    public function __invoke(array $record)
+    public function __invoke($record)
     {
         $record['extra']['uid'] = $this->uid;
 

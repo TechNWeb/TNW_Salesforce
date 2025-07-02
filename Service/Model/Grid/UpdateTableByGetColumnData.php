@@ -50,7 +50,7 @@ class UpdateTableByGetColumnData implements UpdateByDataInterface
      *
      * @return void
      */
-    public function execute(array $entityIds = null): void
+    public function execute(?array $entityIds = null): void
     {
         $columnsDataItems = $this->getColumnsData->execute($entityIds);
         if ($columnsDataItems) {

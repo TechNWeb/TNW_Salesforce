@@ -13,5 +13,5 @@ interface UpdateByDataInterface
      *
      * @return void
      */
-    public function execute(array $entityIds = null): void;
+    public function execute(?array $entityIds = null): void;
 }

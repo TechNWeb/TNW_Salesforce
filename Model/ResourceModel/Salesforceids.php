@@ -35,7 +35,7 @@ class Salesforceids extends AbstractDb
     public function __construct(
         Context $context,
         $connectionName = null,
-        Manager $eventManager = null
+        ?Manager $eventManager = null
     ) {
         parent::__construct($context, $connectionName);
         $this->eventManager = $eventManager ?? ObjectManager::getInstance()->get(Manager::class);

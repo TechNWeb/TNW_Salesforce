@@ -57,7 +57,7 @@ class Status extends Synchronize\Unit\UnitAbstract
         Synchronize\Units $units,
         Synchronize\Group $group,
         Config $config,
-        SalesforceIdStorage $salesforceIdStorage = null,
+        ?SalesforceIdStorage $salesforceIdStorage = null,
         array $dependents = []
     ) {
         parent::__construct($name, $units, $group, array_merge($dependents, [$load, $upsertOutput]));

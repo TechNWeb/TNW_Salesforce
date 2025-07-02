@@ -37,7 +37,7 @@ class ProcessingDeleteInput extends ProcessingAbstract
         $queue = $this->load()->get('%s/queue', $entity);
 
         if ($this->isEntityEmpty($entity)) {
-            throw new Exception(__('The entity related to the queue record #%1 is not available anymore', $queue->getId()));
+            throw new Exception(__('The entity related to the queue record #%1 is not available anymore', $queue->getId()).toString());
         }
 
         if ($queue->isProcessInputUpsert()) {

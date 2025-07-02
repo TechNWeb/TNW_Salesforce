@@ -51,7 +51,7 @@ class GetColumnsDataItems
      *
      * @return array
      */
-    public function execute(array $entityIds = null): array
+    public function execute(?array $entityIds = null): array
     {
         $result = [];
         $nullableEntityIds = [];

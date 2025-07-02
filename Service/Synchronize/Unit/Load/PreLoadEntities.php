@@ -48,7 +48,7 @@ class PreLoadEntities implements CleanableInstanceInterface
      *
      * @return AbstractModel[]
      */
-    public function execute(LoadLoaderInterface $preLoader, array $entityIds, array $entityAdditional = [], string $idFieldName = null): array
+    public function execute(LoadLoaderInterface $preLoader, array $entityIds, array $entityAdditional = [], ?string $idFieldName = null): array
     {
         if (!$entityIds || !($preLoader instanceof PreLoaderInterface)) {
             return [];

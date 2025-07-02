@@ -95,9 +95,9 @@ class Salesforce extends DataObject
         Logger $logger,
         WebsiteDetector $websiteDetector,
         ObjectManagerInterface $objectManager,
-        SerializerInterface $serializer = null,
-        ObjectConvertor $objectConvertor = null,
-        DateTime $dateTime = null
+        ?SerializerInterface $serializer = null,
+        ?ObjectConvertor $objectConvertor = null,
+        ?DateTime $dateTime = null
     ) {
         parent::__construct();
         $this->salesforceConfig = $salesForceConfig;

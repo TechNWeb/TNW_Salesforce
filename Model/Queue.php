@@ -82,7 +82,7 @@ class Queue extends AbstractModel
      * @param Config                $salesforceConfig
      * @param GetDependenceByCode   $getDependenceByCode
      * @param AbstractResource|null $resource
-     * @param AbstractDb|null       $resourceCollection
+     * @param AbstractDb|null $resourceCollection
      * @param array                 $data
      */
     public function __construct(
@@ -90,8 +90,8 @@ class Queue extends AbstractModel
         Registry            $registry,
         Config              $salesforceConfig,
         GetDependenceByCode $getDependenceByCode,
-        AbstractResource    $resource = null,
-        AbstractDb          $resourceCollection = null,
+        ?AbstractResource   $resource = null,
+        ?AbstractDb         $resourceCollection = null,
         array               $data = []
     ) {
 

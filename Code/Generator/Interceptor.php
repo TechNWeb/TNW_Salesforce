@@ -11,9 +11,9 @@ class Interceptor extends \Magento\Framework\Interception\Code\Generator\Interce
     public function __construct(
         $sourceClassName = null,
         $resultClassName = null,
-        \Magento\Framework\Code\Generator\Io $ioObject = null,
-        \Magento\Framework\Code\Generator\CodeGeneratorInterface $classGenerator = null,
-        \Magento\Framework\Code\Generator\DefinedClasses $definedClasses = null
+        ?\Magento\Framework\Code\Generator\Io $ioObject = null,
+        ?\Magento\Framework\Code\Generator\CodeGeneratorInterface $classGenerator = null,
+        ?\Magento\Framework\Code\Generator\DefinedClasses $definedClasses = null
     ) {
         if (null == $classGenerator) {
             $classGenerator = new ClassGenerator();
