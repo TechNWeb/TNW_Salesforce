@@ -19,10 +19,10 @@ abstract class EntityAbstract implements \TNW\Salesforce\Synchronize\Unit\LoadLo
 
     /**
      * MappingEntityLoaderAbstract constructor.
-     * @param \TNW\Salesforce\Model\Entity\SalesforceIdStorage $salesforceIdStorage
+     * @param \TNW\Salesforce\Model\Entity\SalesforceIdStorage|null $salesforceIdStorage
      */
     public function __construct(
-        \TNW\Salesforce\Model\Entity\SalesforceIdStorage $salesforceIdStorage = null
+        ?\TNW\Salesforce\Model\Entity\SalesforceIdStorage $salesforceIdStorage = null
     ) {
         $this->salesforceIdStorage = $salesforceIdStorage;
     }

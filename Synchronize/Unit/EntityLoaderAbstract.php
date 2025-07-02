@@ -26,7 +26,7 @@ abstract class EntityLoaderAbstract
      * @param SalesforceIdStorage|null $salesforceIdStorage
      */
     public function __construct(
-        SalesforceIdStorage $salesforceIdStorage = null
+        ?SalesforceIdStorage $salesforceIdStorage = null
     ) {
         $this->salesforceIdStorage = $salesforceIdStorage;
     }

@@ -24,7 +24,7 @@ class Exception extends LocalizedException
      * @param int $code
      * @param string $queueStatus
      */
-    public function __construct(Phrase $phrase, \Exception $cause = null, $code = 0, $queueStatus = 'errorStatus')
+    public function __construct(Phrase $phrase, ?\Exception $cause = null, $code = 0, $queueStatus = 'errorStatus')
     {
         $this->queueStatus = $queueStatus;
         parent::__construct($phrase, $cause, $code);

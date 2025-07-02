@@ -61,7 +61,7 @@ class CreateCollection implements CreateCollectionInterface
      * @return Collection
      * @throws LocalizedException
      */
-    public function execute(array $entityIds = null): Collection
+    public function execute(?array $entityIds = null): Collection
     {
         $collection = ObjectManager::getInstance()->create($this->collectionClassName);
         foreach ($this->modifiers as $modifier) {

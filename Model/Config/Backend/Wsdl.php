@@ -103,16 +103,16 @@ class Wsdl extends Value
         UploaderFactory $uploaderFactory,
         RequestDataInterface $requestData,
         Filesystem $filesystem,
-        AbstractResource $resource = null,
-        AbstractDb $resourceCollection = null,
         Parser $xmlParser,
         Config $resourceConfig,
         WebsiteDetector $websiteDetector,
         Collection $cacheCollection,
         State $cacheState,
         ObjectManagerInterface $objectManager,
+        ?AbstractResource $resource = null,
+        ?AbstractDb $resourceCollection = null,
         array $data = [],
-        SerializerInterface $serializer = null
+        ?SerializerInterface $serializer = null
     ) {
         $this->_uploaderFactory = $uploaderFactory;
         $this->_requestData = $requestData;

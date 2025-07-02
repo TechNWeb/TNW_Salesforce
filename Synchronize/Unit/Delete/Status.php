@@ -39,7 +39,7 @@ class Status extends Synchronize\Unit\UnitAbstract
      * @param string $deleteOutput
      * @param Synchronize\Units $units
      * @param Synchronize\Group $group
-     * @param SalesforceIdStorage $salesforceIdStorage
+     * @param SalesforceIdStorage|null $salesforceIdStorage
      * @param array $dependents
      */
     public function __construct(
@@ -48,7 +48,7 @@ class Status extends Synchronize\Unit\UnitAbstract
         $deleteOutput,
         Synchronize\Units $units,
         Synchronize\Group $group,
-        SalesforceIdStorage $salesforceIdStorage = null,
+        ?SalesforceIdStorage $salesforceIdStorage = null,
         array $dependents = []
     )
     {

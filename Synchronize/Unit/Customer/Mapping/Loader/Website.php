@@ -37,7 +37,7 @@ class Website extends EntityLoaderAbstract implements EntityPreLoaderInterface
         Load                $loadSubEntities,
         array               $loaders = [],
         array               $afterLoadExecutors = [],
-        SalesforceIdStorage $salesforceIdStorage = null
+        ?SalesforceIdStorage $salesforceIdStorage = null
     ) {
         parent::__construct($salesforceIdStorage);
         $this->loadSubEntities = $loadSubEntities;

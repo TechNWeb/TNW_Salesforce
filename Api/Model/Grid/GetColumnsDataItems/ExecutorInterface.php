@@ -18,5 +18,5 @@ interface ExecutorInterface
      *
      * @return array
      */
-    public function execute(string $columnName, array $entityIds = null): array;
+    public function execute(string $columnName, ?array $entityIds = null): array;
 }

@@ -323,7 +323,7 @@ class Process implements \TNW\Salesforce\Api\Model\Prequeue\ProcessInterface
         } catch (\Throwable $e) {
             $message = implode(PHP_EOL, [$e->getMessage(), $e->getTraceAsString()]);
             $this->logger->critical($message);
-            throw new Exception(__('SalesForce attempt to process prequeue caused an error: ' . $e->getMessage()));
+            throw new Exception(__('SalesForce attempt to process prequeue caused an error: ' . $e->getMessage()).toString());
         } finally {
             $this->cleanLocalCacheForInstances->execute();
         }

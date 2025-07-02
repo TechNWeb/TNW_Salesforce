@@ -153,7 +153,7 @@ class Unit implements CleanableInstanceInterface
         array $children = [],
         array $preLoaders = [],
         bool $ignoreFindGeneratorException = false,
-        SerializerInterface $serializer= null
+        ?SerializerInterface $serializer= null
     ) {
         $this->code = $code;
         $this->entityType = $entityType;

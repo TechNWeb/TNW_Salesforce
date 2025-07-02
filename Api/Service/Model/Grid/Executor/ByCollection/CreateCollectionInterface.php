@@ -16,5 +16,5 @@ interface CreateCollectionInterface
      * @param array|null $entityIds
      * @return Collection
      */
-    public function execute(array $entityIds = null): Collection;
+    public function execute(?array $entityIds = null): Collection;
 }

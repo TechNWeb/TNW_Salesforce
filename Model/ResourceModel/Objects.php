@@ -80,7 +80,7 @@ class Objects extends AbstractDb
         Config            $config,
         LoggerInterface   $logger,
                           $connectionName = null,
-        Manager           $eventManager = null
+        ?Manager           $eventManager = null
     ) {
         parent::__construct($context, $connectionName);
         $this->eventManager = $eventManager ?? ObjectManager::getInstance()->get(Manager::class);
@@ -191,7 +191,7 @@ class Objects extends AbstractDb
      *
      * @return string
      */
-    public function loadPriceBookId(int $productId, int $websiteId, int $storeId = null): string
+    public function loadPriceBookId(int $productId, int $websiteId, ?int $storeId = null): string
     {
         $loadPricebookIdSelect = clone $this->selectPriceBookId;
         if ($storeId) {

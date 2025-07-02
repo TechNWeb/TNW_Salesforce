@@ -29,7 +29,7 @@ class RefreshSalesforceDataOnGrids extends Command
      */
     public function __construct(
         GetGridUpdatersByEntityTypes $getGridUpdatersByEntityTypes,
-        string                       $name = null
+        ?string                       $name = null
     )
     {
         parent::__construct($name);

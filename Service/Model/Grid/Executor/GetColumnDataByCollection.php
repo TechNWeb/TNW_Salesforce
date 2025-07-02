@@ -45,8 +45,8 @@ class GetColumnDataByCollection implements ExecutorInterface, CleanableInstanceI
      */
     public function __construct(
         CreateCollectionInterface $createCollection,
-        string           $resultType = null,
-        bool             $allowNull = true
+        ?string           $resultType = null,
+        ?bool             $allowNull = true
     ) {
         $this->createCollection = $createCollection;
         $this->resultType = $resultType;
@@ -61,7 +61,7 @@ class GetColumnDataByCollection implements ExecutorInterface, CleanableInstanceI
      * @return array
      * @throws LocalizedException
      */
-    public function execute(string $columnName, array $entityIds = null): array
+    public function execute(string $columnName, ?array $entityIds = null): array
     {
         if ($entityIds === null) {
             if (!$this->fullProcessed) {

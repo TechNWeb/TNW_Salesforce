@@ -43,7 +43,7 @@ class GetCustomerGroupIds implements CleanableInstanceInterface
      * @return array|null
      * @throws NoSuchEntityException
      */
-    public function execute(int $websiteId = null): ?array
+    public function execute(?int $websiteId = null): ?array
     {
         $websiteId = $websiteId ?? $this->storeManager->getStore()->getWebsiteId();
         if (isset($this->cache[$websiteId])) {
