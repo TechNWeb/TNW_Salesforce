@@ -137,8 +137,8 @@
         <column xsi:type="timestamp" name="sync_at" on_update="false" nullable="true" comment="When synced" />
         <column xsi:type="varchar" name="status" nullable="false" length="30" default="new" comment="Status" />
         <column xsi:type="varchar" length="255" name="message" nullable="true" comment="Message" />
-        <column xsi:type="varchar" name="status_code" length="255" nullable="true" comment="Status code"/>
-        <column xsi:type="varchar" name="code" nullable="false" length="255" comment="Code" />
+        <column xsi:type="varchar" name="status_code" length="32" nullable="true" comment="Status code"/>
+        <column xsi:type="varchar" name="code" nullable="false" length="32" comment="Code" />
         <column xsi:type="varchar" name="description" nullable="false" length="255" comment="Description" />
         <column xsi:type="smallint" name="website_id" padding="5" unsigned="true" nullable="false" identity="false" comment="Website Id" />
         <column xsi:type="varchar" name="transaction_uid" nullable="true" length="32" comment="Transaction Uid" />
@@ -146,7 +146,7 @@
         <column xsi:type="timestamp" name="created_at" on_update="false" nullable="false" default="CURRENT_TIMESTAMP" comment="When create" />
         <column xsi:type="timestamp" name="updated_at" on_update="true" nullable="false" default="CURRENT_TIMESTAMP" comment="When updated" />
         <column xsi:type="varchar" name="identify" nullable="true" length="64" comment="Identifier allow detect entity added to the queue with specific params" />
-        <column xsi:type="varchar" name="composite_status" nullable="false" length="255" default="new" comment="Composite status, taking into account the status of relatives" />
+        <column xsi:type="varchar" name="composite_status" nullable="false" length="32" default="new" comment="Composite status, taking into account the status of relatives" />
         <column xsi:type="varchar" name="unique_hash" nullable="true" length="64" comment="Unique hash for record based on unique data for object." />
         <column xsi:type="int" name="priority" unsigned="true" nullable="false" identity="false" default="0" comment="Sort order field for optimization" />
         <constraint xsi:type="primary" referenceId="PRIMARY">
