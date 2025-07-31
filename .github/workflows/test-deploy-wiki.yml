@@ -1,0 +1,1111 @@
+name: PowerSync/TNW_Salesforce/test-deploy-wiki
+on:
+  push:
+    branches:
+    - master
+env:
+  EQP_META_SKU: xxxxasic
+  EQP_SHARED_MODULES: xxxxorce
+  EQP_SHARED_SKU: xxxxorce
+  MODULES_NAME: xxxxorce
+  PACKAGES_NAME: xxxxorce
+jobs:
+  m235-commerce-php73:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//.*-2\.4\.4/'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m235-commerce-php73
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Checkout related modules
+      run: |-
+        cd /var/www/html/magento/
+        for moduleName in $MODULES_NAME; do
+          composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
+          moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
+          set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-${{ github.ref }}[^0-9a-zA-Z-]"`)
+          set -e
+          COMPOSER_BRANCH="dev-"
+          if test -z "$branchExists"
+          then
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
+          else
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}${{ github.ref }}"
+          fi
+          composer require --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
+          COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
+          composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  m235-open_source-php73:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//.*-2\.4\.4/'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m235-open_source-php73
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Checkout related modules
+      run: |-
+        cd /var/www/html/magento/
+        for moduleName in $MODULES_NAME; do
+          composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
+          moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
+          set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-${{ github.ref }}[^0-9a-zA-Z-]"`)
+          set -e
+          COMPOSER_BRANCH="dev-"
+          if test -z "$branchExists"
+          then
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
+          else
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}${{ github.ref }}"
+          fi
+          composer require --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
+          COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
+          composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  m243-commerce-php74:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//.*-2\.4\.4/'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m243-commerce-php74
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        cd /var/www/html/magento/
+        composer --no-plugins config allow-plugins true
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Checkout related modules
+      run: |-
+        cd /var/www/html/magento/
+        for moduleName in $MODULES_NAME; do
+          composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
+          moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
+          set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-${{ github.ref }}[^0-9a-zA-Z-]"`)
+          set -e
+          COMPOSER_BRANCH="dev-"
+          if test -z "$branchExists"
+          then
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
+          else
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}${{ github.ref }}"
+          fi
+          COMPOSER_MEMORY_LIMIT=-1 composer require --with-all-dependencies --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
+          COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
+          COMPOSER_MEMORY_LIMIT=-1 composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  m243-open_source-php74:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref != 'refs/heads//.*-2\.4\.4/'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m243-open_source-php74
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        cd /var/www/html/magento/
+        composer --no-plugins config allow-plugins true
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Checkout related modules
+      run: |-
+        cd /var/www/html/magento/
+        for moduleName in $MODULES_NAME; do
+          composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
+          moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
+          set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-${{ github.ref }}[^0-9a-zA-Z-]"`)
+          set -e
+          COMPOSER_BRANCH="dev-"
+          if test -z "$branchExists"
+          then
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
+          else
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}${{ github.ref }}"
+          fi
+          COMPOSER_MEMORY_LIMIT=-1 composer require --with-all-dependencies --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
+          COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
+          COMPOSER_MEMORY_LIMIT=-1 composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  magento-coding-standard:
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m243-commerce-php74
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Update coding standarts
+      run: |-
+        cd /var/www/html/magento-coding-standard
+        composer update
+    - name: Run Magento Coding Standard
+      run: "/var/www/html/magento-coding-standard/vendor/bin/phpcs ${{ github.workspace }} --standard=MEQP2 --severity=10 --extensions=php,phtml"
+  deploy:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-20.04
+    needs:
+    - tag-release
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - name: Deploy Over SSH
+      run: ssh $SSH_USER@$SSH_HOST "./release"
+  marketplace-submit:
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension/"
+    runs-on: ubuntu-latest
+    container:
+      image: circleci/php:7.1-apache-stretch-node-browsers
+    needs:
+    - tag-release
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Submit code to Magento Marketplace
+      run: |-
+        cd ~/tnw_extension/
+        cd .circleci
+        chmod +x submit_code.sh
+        ./submit_code.sh
+  tag-release:
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension/"
+    runs-on: ubuntu-20.04
+    needs:
+    - m235-commerce-php73
+    - m235-open_source-php73
+    - m243-commerce-php74
+    - m243-open_source-php74
+    - magento-coding-standard
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Tag new release
+      run: |-
+        cd ~/tnw_extension/
+        cd .circleci
+        chmod +x git_release.sh
+        ./git_release.sh
+  check-composer-installation:
+    if: github.ref == 'refs/heads/master'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m243-commerce-php74
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    needs:
+    - deploy
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        cd /var/www/html/magento/
+        composer --no-plugins config allow-plugins true
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Configure our repository
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.dist.powersync.biz $TECHWEB_REPO_LOGIN $TECHNWEB_REPO_PASSWORD
+        composer config --global repositories.powersync composer https://dist.powersync.biz
+        composer config repositories.powersync '{"type": "composer", "url": "https://dist.powersync.biz", "canonical": false}'
+        composer config repositories.0 '{"type": "composer", "url": "https://repo.magento.com/", "canonical": false}'
+    - name: Checkout related modules
+      run: |-
+        set -x
+        cd /var/www/html/magento/
+        MODULE_NAME=$(grep -o '^ *"name": *"[a-zA-Z\/]*"' ~/tnw_extension/composer.json |  awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+        for package in $PACKAGES_NAME; do
+          if [[ "$package" == "$MODULE_NAME" ]];
+          then
+            NEW_MODULE_VERSION=$(grep -o '^ *"version": *"[0-9\.]*"' ~/tnw_extension/composer.json | awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+          else
+            NEW_MODULE_VERSION=(`composer show -al $package -f json|jq -r '.versions'|grep -o 2.9.\[0-9\]\*|head -n1`);
+          fi
+          composer require $package=$NEW_MODULE_VERSION
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  update-wiki:
+    if: github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    container:
+      image: circleci/php:7.1-apache-stretch-node-browsers
+    needs:
+    - check-composer-installation
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+    - name: Prepare for wiki update
+      run: |-
+        mkdir -p ~/.composer/
+        echo '{}'>~/.composer/composer.json
+        composer config -g http-basic.dist.powersync.biz $TECHWEB_REPO_LOGIN $TECHNWEB_REPO_PASSWORD
+        composer config --global repositories.powersync composer https://dist.powersync.biz
+    - name: Push changes to wiki
+      run: |-
+        set -x
+        cd ~/.composer/
+        MODULE_NAME=$(grep -o '^ *"name": *"[a-zA-Z\/]*"' ~/project/composer.json |  awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+        for package in $PACKAGES_NAME; do
+          if [[ "$package" == "$MODULE_NAME" ]];
+          then
+            NEW_MODULE_VERSION=$(grep -o '^ *"version": *"[0-9\.]*"' ~/project/composer.json | awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+          else
+            NEW_MODULE_VERSION=(`composer show -al $package -f json|jq -r '.versions'|grep -o 2.9.\[0-9\]\*|head -n1`);
+          fi
+          PAGE_TITLE='_'
+          PAGE_TITLE+=`echo "$package" | sed 's/\//_/'`
+          PAGE_SEARCH_DATA=`curl -u $JIRA_LOGIN:$JIRA_TOKEN -X GET "https://technweb.atlassian.net/wiki/rest/api/content?title=$PAGE_TITLE&limit=1&expand=version.number,body.view,body.storage"`
+          PAGE_ID=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].id'`
+          PAGE_VERSION=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].version.number'`
+          PAGE_CURRENT_BODY_STORAGE=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].body.storage.value'`
+          PAGE_NEW_BODY_STORAGE=`echo $PAGE_CURRENT_BODY_STORAGE|sed "s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$NEW_MODULE_VERSION/g"|sed 's/\"/\\\"/g'`
+          ((PAGE_VERSION++))
+          POST_DATA="{
+              \"id\": $PAGE_ID,
+              \"type\": \"page\",
+              \"title\": \"$PAGE_TITLE\",
+              \"body\": {
+                \"storage\": {
+                  \"value\": \"$PAGE_NEW_BODY_STORAGE\",
+                  \"representation\": \"storage\"
+                }
+              },
+              \"version\": {
+                \"number\": $PAGE_VERSION
+              }
+            }"
+          curl --request PUT \
+            --url "https://technweb.atlassian.net/wiki/rest/api/content/$PAGE_ID" \
+            --user "$JIRA_LOGIN:$JIRA_TOKEN" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data "$POST_DATA"
+        done
+  m244-commerce-php81:
+    if: # GitHub does not currently support regular expressions inside if conditions
+#         github.ref == 'refs/heads//.*-2\.4\.4/'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m244-commerce-php815-elastic716
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        cd /var/www/html/magento/
+        composer --no-plugins config allow-plugins true
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Checkout related modules
+      run: |-
+        cd /var/www/html/magento/
+        for moduleName in $MODULES_NAME; do
+          composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
+          moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
+          set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-${{ github.ref }}"`)
+          set -e
+          COMPOSER_BRANCH="dev-"
+          if test -z "$branchExists"
+          then
+            set +e
+            branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-develop-2\.4\.4"`)
+            set -e
+            if test -z "$branchExists"
+              then
+                COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
+              else
+                COMPOSER_BRANCH="${COMPOSER_BRANCH}develop-2.4.4"
+            fi
+          else
+            COMPOSER_BRANCH="${COMPOSER_BRANCH}${{ github.ref }}"
+          fi
+          composer require --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
+          COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
+          composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  magento-coding-standard-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m244-commerce-php815-elastic716
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Update coding standarts
+      run: |-
+        cd /var/www/html/magento-coding-standard
+        composer update
+    - name: Run Magento Coding Standard
+      run: "/var/www/html/magento-coding-standard/vendor/bin/phpcs ${{ github.workspace }} --standard=MEQP2 --severity=10 --extensions=php,phtml"
+  deploy-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    runs-on: ubuntu-20.04
+    needs:
+    - tag-release-244
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - name: Deploy Over SSH
+      run: ssh $SSH_USER@$SSH_HOST "./release"
+  tag-release-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension/"
+    runs-on: ubuntu-20.04
+    needs:
+    - m244-commerce-php81
+    - magento-coding-standard-244
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Tag new release
+      run: |-
+        cd ~/tnw_extension/
+        cd .circleci
+        chmod +x git_release.sh
+        ./git_release.sh
+  check-composer-installation-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension"
+    runs-on: ubuntu-latest
+    container:
+      image: powersync/magento-builds:m244-commerce-php815-elastic716
+      credentials:
+        username: "$DOCKER_USER"
+        password: "$DOCKER_PASS"
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_PASSWORD: mage
+          MYSQL_USER: mage
+          MYSQL_DATABASE: magento
+          MYSQL_ROOT_PASSWORD: docker
+    needs:
+    - deploy-244
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Reinstall Composer
+      run: |-
+        cd ~
+        curl -sS https://getcomposer.org/installer -o composer-setup.php
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        cd /var/www/html/magento/
+        composer --no-plugins config allow-plugins true
+    - name: Wait for DB
+      run: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
+    - name: Installing Magento
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
+        ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+        ./bin/magento --version
+    - name: Configure our repository
+      run: |-
+        cd /var/www/html/magento/
+        composer config -g http-basic.dist.powersync.biz $TECHWEB_REPO_LOGIN $TECHNWEB_REPO_PASSWORD
+        composer config --global repositories.powersync composer https://dist.powersync.biz
+        composer config repositories.powersync '{"type": "composer", "url": "https://dist.powersync.biz", "canonical": false}'
+        composer config repositories.0 '{"type": "composer", "url": "https://repo.magento.com/", "canonical": false}'
+    - name: Checkout related modules
+      run: |-
+        set -x
+        cd /var/www/html/magento/
+        MODULE_NAME=$(grep -o '^ *"name": *"[a-zA-Z\/]*"' ~/tnw_extension/composer.json |  awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+        for package in $PACKAGES_NAME; do
+          if [[ "$package" == "$MODULE_NAME" ]];
+          then
+            NEW_MODULE_VERSION=$(grep -o '^ *"version": *"[0-9\.]*"' ~/tnw_extension/composer.json | awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+          else
+            NEW_MODULE_VERSION=(`composer show -al $package -f json|jq -r '.versions'|grep 2.10.\[0-9\]\*|head -n1`);
+          fi
+          composer require $package=$NEW_MODULE_VERSION
+        done
+    - name: Install the Extension
+      run: |-
+        cd /var/www/html/magento
+        rm -rf ./generated/*
+        ./bin/magento module:status
+        ./bin/magento module:enable --all
+        ./bin/magento setup:upgrade
+    - name: Compile the Code
+      run: |-
+        cd /var/www/html/magento
+        php bin/magento setup:di:compile
+        php bin/magento deploy:mode:set developer
+  update-wiki-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    runs-on: ubuntu-latest
+    container:
+      image: circleci/php:7.1-apache-stretch-node-browsers
+    needs:
+    - check-composer-installation-244
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Prepare for wiki update
+      run: |-
+        mkdir -p ~/.composer/
+        echo '{}'>~/.composer/composer.json
+        composer config -g http-basic.dist.powersync.biz $TECHWEB_REPO_LOGIN $TECHNWEB_REPO_PASSWORD
+        composer config --global repositories.powersync composer https://dist.powersync.biz
+    - name: Push changes to wiki
+      run: |-
+        set -x
+        cd ~/.composer/
+        MODULE_NAME=$(grep -o '^ *"name": *"[a-zA-Z\/]*"' ~/project/composer.json |  awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+        for package in $PACKAGES_NAME; do
+          if [[ "$package" == "$MODULE_NAME" ]];
+          then
+            NEW_MODULE_VERSION=$(grep -o '^ *"version": *"[0-9\.]*"' ~/project/composer.json | awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
+          else
+            NEW_MODULE_VERSION=(`composer show -al $package -f json|jq -r '.versions'|grep 2.10.\[0-9\]\*|head -n1`);
+          fi
+          PAGE_TITLE='_'
+          PAGE_TITLE+=`echo "$package" | sed 's/\//_/'`
+          PAGE_TITLE+='-2.4.4'
+          PAGE_SEARCH_DATA=`curl -u $JIRA_LOGIN:$JIRA_TOKEN -X GET "https://technweb.atlassian.net/wiki/rest/api/content?title=$PAGE_TITLE&limit=1&expand=version.number,body.view,body.storage"`
+          PAGE_ID=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].id'`
+          PAGE_VERSION=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].version.number'`
+          PAGE_CURRENT_BODY_STORAGE=`echo $PAGE_SEARCH_DATA|jq -r '.results[0].body.storage.value'`
+          PAGE_NEW_BODY_STORAGE=`echo $PAGE_CURRENT_BODY_STORAGE|sed "s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/$NEW_MODULE_VERSION/g"|sed 's/\"/\\\"/g'`
+          ((PAGE_VERSION++))
+          POST_DATA="{
+              \"id\": $PAGE_ID,
+              \"type\": \"page\",
+              \"title\": \"$PAGE_TITLE\",
+              \"body\": {
+                \"storage\": {
+                  \"value\": \"$PAGE_NEW_BODY_STORAGE\",
+                  \"representation\": \"storage\"
+                }
+              },
+              \"version\": {
+                \"number\": $PAGE_VERSION
+              }
+            }"
+          curl --request PUT \
+            --url "https://technweb.atlassian.net/wiki/rest/api/content/$PAGE_ID" \
+            --user "$JIRA_LOGIN:$JIRA_TOKEN" \
+            --header 'Accept: application/json' \
+            --header 'Content-Type: application/json' \
+            --data "$POST_DATA"
+        done
+  marketplace-submit-244:
+    if: github.ref == 'refs/heads/master-2.4.4'
+    defaults:
+      run:
+        working-directory: "~/tnw_extension/"
+    runs-on: ubuntu-latest
+    container:
+      image: circleci/php:7.1-apache-stretch-node-browsers
+    needs:
+    - tag-release-244
+    env:
+      COMPOSER_MEMORY_LIMIT:
+      DOCKER_PASS:
+      DOCKER_USER:
+      EQP_API_KEY:
+      EQP_API_URL:
+      EQP_DATA_PATH:
+      EQP_LOG_PATH:
+      EQP_MALWARE_CHECK_PAUSE:
+      EQP_PAYLOAD_RESULT_PATH:
+      EQP_PRINT_RESPONSE:
+      EQP_SAVE_RESPONSE:
+      EQP_UPLOADED_IDS_PATH:
+      GITHUB_SSH_KEY:
+      GITHUB_TOKEN:
+      JIRA_LOGIN:
+      JIRA_TOKEN:
+      MAGENTO_REPO_LOGIN:
+      MAGENTO_REPO_PASSWORD:
+      SLACK_BOT_TOKEN:
+      SLACK_CHANNEL_ID:
+    steps:
+    - uses: actions/checkout@v3.5.0
+    - name: Submit code to Magento Marketplace
+      run: |-
+        cd ~/tnw_extension/
+        cd .circleci
+        chmod +x submit_code.sh
+        ./submit_code.sh
