@@ -5,6 +5,8 @@ jobs:
     machine:
       image: ubuntu-2204:current
     steps:
+      # The release server key is one of the project's Additional SSH Keys
+      - add_ssh_keys
       - run:
           name: Deploy Over SSH
           command: |
