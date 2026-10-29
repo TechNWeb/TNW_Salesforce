@@ -38,9 +38,9 @@ jobs:
             chmod +x git_release.sh
             ./git_release.sh
 
-  m237-open_source-php74:
+  m243-open_source-php74: &base-image243
     docker:
-      - image: michielgerritsen/magento-project-community-edition:php74-fpm-magento2.3.7-p4
+      - image: michielgerritsen/magento-project-community-edition:php74-fpm-magento2.4.3-p2
     working_directory: ~/tnw_extension
     steps:
       - checkout
@@ -75,58 +75,6 @@ jobs:
             composer config policy.advisories.block false 2> /dev/null \
               || composer config audit.block-insecure false 2> /dev/null \
               || true
-      - run:
-          name: Checkout related modules
-          command: |
-            cd /data/
-            for moduleName in $MODULES_NAME; do
-              composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
-
-              moduleNameLower=(`echo $moduleName| tr '[:upper:]' '[:lower:]'`)
-
-              set +e
-                branchExists=(`composer info -a tnw/$moduleNameLower|grep "versions : .*dev-$CIRCLE_BRANCH[^0-9a-zA-Z-]"`)
-              set -e
-
-              COMPOSER_BRANCH="dev-"
-
-              if test -z "$branchExists"
-              then
-                COMPOSER_BRANCH="${COMPOSER_BRANCH}develop"
-              else
-                COMPOSER_BRANCH="${COMPOSER_BRANCH}${CIRCLE_BRANCH}"
-              fi
-
-              composer require --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH}"
-
-              COMPOSER_TAG=$(grep -o '^ *"version": *"[0-9\.]*"' vendor/tnw/${moduleNameLower}/composer.json|awk '{print $2}'|sed -e 's/"\(.*\)"/\1/g')
-
-              composer require --no-update --prefer-source tnw/${moduleNameLower}:"${COMPOSER_BRANCH} as ${COMPOSER_TAG}"
-            done
-
-      - run:
-          name: Install the Extension
-          command: |
-            cd /data
-            rm -rf ./generated/*
-            ./bin/magento module:status
-            ./bin/magento module:enable --all
-            ./bin/magento setup:upgrade
-      - run:
-          name: Compile the Code
-          command: |
-            cd /data
-            php bin/magento setup:di:compile
-            php bin/magento deploy:mode:set developer
-  m243-open_source-php74: &base-image243
-    docker:
-      - image: michielgerritsen/magento-project-community-edition:php74-fpm-magento2.4.3-p2
-    working_directory: ~/tnw_extension
-    steps:
-      - checkout
-      - run: *start-services
-      - run: *wait-for-services
-      - run: *configure-composer
       - run:
           name: Checkout related modules
           command: |
@@ -532,11 +480,6 @@ jobs:
 workflows:
   test-deploy-wiki:
     jobs:
-      - m237-open_source-php74:
-          context: powersync
-          filters:
-            branches:
-              ignore: /.*-2\.4\.4/
       - m243-open_source-php74:
           context: powersync
           filters:
@@ -564,7 +507,6 @@ workflows:
       - tag-release:
           context: powersync
           requires:
-            - m237-open_source-php74
             - m243-open_source-php74
             - magento-coding-standard
           filters:
