@@ -50,7 +50,7 @@ class RefreshSalesforceDataOnGrids extends Command
     /**
      * @inheritDoc
      */
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
         try {
             foreach ($this->getGridUpdatersByEntityTypes->execute() as $updaters) {

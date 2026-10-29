@@ -12,10 +12,10 @@ $urlr = $block->getAjaxUrl() ;
 ?>
 
 <div class="actions actions-test-salesforce-connection"
-     data-mage-init='{"TNW_Salesforce/js/connection":{"url": "<?php echo $block->getAjaxUrl()?>",
-        "type": "<?php echo $block->getFormId() ?>",
-        "successMessage": "<?php echo __('Connection successful!') ?>",
-        "inProgressMessage": "<?php echo __('Testing...') ?>"
+     data-mage-init='{"TNW_Salesforce/js/connection":{"url": "<?= $block->escapeJs($block->getAjaxUrl()) ?>",
+        "type": "<?= $block->escapeJs($block->getFormId()) ?>",
+        "successMessage": "<?= $block->escapeJs(__('Connection successful!')) ?>",
+        "inProgressMessage": "<?= $block->escapeJs(__('Testing...')) ?>"
         }}'>
     <button disabled type="button" class="action test-connection action-primary">
         <span><?php echo $block->escapeHtml($block->getButtonLabel()) ?></span>
@@ -27,7 +27,7 @@ $urlr = $block->getAjaxUrl() ;
     {
         "#tnwsforce_general_salesforce_wsdl": {
             "TNW_Salesforce/js/upload": {
-                "ajaxUrl": "<?= $block->getAjaxUrl() ?>"
+                "ajaxUrl": "<?= $block->escapeJs($block->getAjaxUrl()) ?>"
             }
         }
     }
