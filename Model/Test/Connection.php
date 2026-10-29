@@ -46,9 +46,10 @@ class Connection extends  \TNW\Salesforce\Model\Test
         $username = $this->config->getSalesforceUsername();
         $password = $this->config->getSalesforcePassword();
         $token = $this->config->getSalesforceToken();
+        $clientCredentials = $this->config->getOAuthClientCredentials();
 
         try{
-            $client->checkConnection($wsdl, $username, $password, $token);
+            $client->checkConnection($wsdl, $username, $password, $token, $clientCredentials);
         }catch (\Exception $e){
             $result = parent::STATUS_FAILED;
         }

@@ -149,11 +149,6 @@ class Wsdl extends Value
 
                 $loadedxmlfile = $result['path'] . '/' . $result['file'];
 
-                /** Disable external entity loading to prevent possible vulnerability */
-                $previousLoaderState = @libxml_disable_entity_loader(true);
-
-                @libxml_disable_entity_loader($previousLoaderState);
-
                 $parsedXMLData = $this->xmlParser->load($loadedxmlfile)->xmlToArray();
 
                 if (isset($parsedXMLData['definitions']['_value']['service'])) {

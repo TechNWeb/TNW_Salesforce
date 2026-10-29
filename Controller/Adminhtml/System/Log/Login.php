@@ -15,12 +15,19 @@ class Login extends \Magento\Backend\App\Action
      */
     private $salesforce;
 
+    /**
+     * @var \TNW\Salesforce\Model\Config
+     */
+    private $config;
+
     public function __construct(
         \Magento\Backend\App\Action\Context $context,
-        \TNW\Salesforce\Client\Salesforce $salesforce
+        \TNW\Salesforce\Client\Salesforce $salesforce,
+        \TNW\Salesforce\Model\Config $config
     ) {
         parent::__construct($context);
         $this->salesforce = $salesforce;
+        $this->config = $config;
     }
 
     /**
@@ -41,6 +48,13 @@ class Login extends \Magento\Backend\App\Action
     public function execute()
     {
         $websiteId = $this->_request->getParam('website_id');
+
+        // Client Credentials tokens can't open the Salesforce UI, the user signs in on the My Domain page
+        $clientCredentials = $this->config->getOAuthClientCredentials($websiteId);
+        if ($clientCredentials && $clientCredentials->getMyDomainUrl() !== '') {
+            return $this->resultRedirectFactory->create()
+                ->setUrl($clientCredentials->getMyDomainUrl());
+        }
 
         try {
             $client = $this->salesforce->getClient($websiteId);

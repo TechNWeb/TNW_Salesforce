@@ -88,10 +88,11 @@ class ClientFactory
 
         $builder = new ClientBuilder(
             $wsdl,
-            $this->salesforceConfig->getSalesforceUsername($websiteId),
-            $this->salesforceConfig->getSalesforcePassword($websiteId),
-            $this->salesforceConfig->getSalesforceToken($websiteId)
+            (string)$this->salesforceConfig->getSalesforceUsername($websiteId),
+            (string)$this->salesforceConfig->getSalesforcePassword($websiteId),
+            (string)$this->salesforceConfig->getSalesforceToken($websiteId)
         );
+        $builder->withClientCredentials($this->salesforceConfig->getOAuthClientCredentials($websiteId));
 
         if ($this->salesforceConfig->getLogDebug()) {
             $builder->withLog($this->logger);
