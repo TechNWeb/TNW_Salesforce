@@ -38,35 +38,43 @@ jobs:
             chmod +x git_release.sh
             ./git_release.sh
 
-  m235-commerce-php73: &base-image235
+  m235-open_source-php73:
     docker:
-      - image: powersync/magento-builds:m235-commerce-php73
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_PASSWORD: mage
-          MYSQL_USER: mage
-          MYSQL_DATABASE: magento
-          MYSQL_ROOT_PASSWORD: docker
+      - image: michielgerritsen/magento-project-community-edition:php73-fpm-magento2.3.5-p2
     working_directory: ~/tnw_extension
     steps:
       - checkout
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
-      - run:
-          name: Installing Magento
+      - run: &start-services
+          name: Start MySQL and Elasticsearch
+          background: true
           command: |
-            cd /var/www/html/magento/
-            composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
-            ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
+            # The image's entrypoint normally starts them; start them here if it did not run
+            cd /data
+            pgrep -x supervisord > /dev/null || ./start-services
+            sleep infinity
+      - run: &wait-for-services
+          name: Wait for MySQL and Elasticsearch
+          command: |
+            for i in $(seq 1 60); do mysql -uroot -e 'SELECT 1' > /dev/null 2>&1 && break; sleep 2; done
+            mysql -uroot -e 'SELECT 1' > /dev/null
+            for i in $(seq 1 60); do curl -sf -o /dev/null http://localhost:9200 && break; sleep 2; done
+            cd /data
             ./bin/magento --version
+      - run: &configure-composer
+          name: Configure Composer
+          command: |
+            cd /data
+            if [ -n "$MAGENTO_REPO_LOGIN" ]; then
+              composer config -g http-basic.repo.magento.com "$MAGENTO_REPO_LOGIN" "$MAGENTO_REPO_PASSWORD"
+            else
+              # No Marketplace keys: use the public Mage-OS mirror of Magento Open Source
+              composer config repositories.0 composer https://mirror.mage-os.org/
+            fi
+            composer --no-plugins config allow-plugins true
       - run:
           name: Checkout related modules
           command: |
-            cd /var/www/html/magento/
+            cd /data/
             for moduleName in $MODULES_NAME; do
               composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
 
@@ -95,7 +103,7 @@ jobs:
       - run:
           name: Install the Extension
           command: |
-            cd /var/www/html/magento
+            cd /data
             rm -rf ./generated/*
             ./bin/magento module:status
             ./bin/magento module:enable --all
@@ -103,59 +111,22 @@ jobs:
       - run:
           name: Compile the Code
           command: |
-            cd /var/www/html/magento
+            cd /data
             php bin/magento setup:di:compile
             php bin/magento deploy:mode:set developer
-  m235-open_source-php73:
-    <<: *base-image235
+  m243-open_source-php74: &base-image243
     docker:
-      - image: powersync/magento-builds:m235-open_source-php73
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_PASSWORD: mage
-          MYSQL_USER: mage
-          MYSQL_DATABASE: magento
-          MYSQL_ROOT_PASSWORD: docker
-  m243-commerce-php74: &base-image243
-    docker:
-      - image: powersync/magento-builds:m243-commerce-php74
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_PASSWORD: mage
-          MYSQL_USER: mage
-          MYSQL_DATABASE: magento
-          MYSQL_ROOT_PASSWORD: docker
+      - image: michielgerritsen/magento-project-community-edition:php74-fpm-magento2.4.3-p2
     working_directory: ~/tnw_extension
     steps:
       - checkout
-      - run:
-          name: Reinstall Composer
-          command: |
-            cd ~
-            curl -sS https://getcomposer.org/installer -o composer-setup.php
-            sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-            cd /var/www/html/magento/
-            composer --no-plugins config allow-plugins true
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
-      - run:
-          name: Installing Magento
-          command: |
-            cd /var/www/html/magento/
-            composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
-            ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
-            ./bin/magento --version
+      - run: *start-services
+      - run: *wait-for-services
+      - run: *configure-composer
       - run:
           name: Checkout related modules
           command: |
-            cd /var/www/html/magento/
+            cd /data/
 
             for moduleName in $MODULES_NAME; do
               composer config repositories.TNW_$moduleName git git@github.com:PowerSync/TNW_$moduleName.git
@@ -177,7 +148,7 @@ jobs:
       - run:
           name: Install the Extension
           command: |
-            cd /var/www/html/magento
+            cd /data
             rm -rf ./generated/*
             ./bin/magento module:status
             ./bin/magento module:enable --all
@@ -185,62 +156,32 @@ jobs:
       - run:
           name: Compile the Code
           command: |
-            cd /var/www/html/magento
+            cd /data
             php bin/magento setup:di:compile
             php bin/magento deploy:mode:set developer
-  m243-open_source-php74:
-    <<: *base-image243
-    docker:
-      - image: powersync/magento-builds:m243-open_source-php74
-        auth:
-          username: $DOCKER_USER
-          password: $DOCKER_PASS
-      - image: circleci/mysql:5.7
-        environment:
-          MYSQL_PASSWORD: mage
-          MYSQL_USER: mage
-          MYSQL_DATABASE: magento
-          MYSQL_ROOT_PASSWORD: docker
-
   magento-coding-standard:
-    <<: *base-image243
+    docker:
+      - image: cimg/php:7.4
+    working_directory: ~/tnw_extension
     steps:
       - checkout
       - run:
-          name: Update coding standarts
-          command: |
-            cd /var/www/html/magento-coding-standard
-            composer update
+          name: Install Magento Coding Standard
+          command: composer create-project --no-interaction --no-progress magento/magento-coding-standard ~/magento-coding-standard
       - run:
           name: Run Magento Coding Standard
-          command: |
-            /var/www/html/magento-coding-standard/vendor/bin/phpcs $CIRCLE_WORKING_DIRECTORY --standard=MEQP2 --severity=10 --extensions=php,phtml
+          command: ~/magento-coding-standard/vendor/bin/phpcs . --standard=Magento2 --severity=10 --extensions=php,phtml
   check-composer-installation:
     <<: *base-image243
     steps:
       - checkout
-      - run:
-          name: Reinstall Composer
-          command: |
-            cd ~
-            curl -sS https://getcomposer.org/installer -o composer-setup.php
-            sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
-            cd /var/www/html/magento/
-            composer --no-plugins config allow-plugins true
-      - run:
-          name: Wait for DB
-          command: dockerize -wait tcp://127.0.0.1:3306 -timeout 120s
-      - run:
-          name: Installing Magento
-          command: |
-            cd /var/www/html/magento/
-            composer config -g http-basic.repo.magento.com $MAGENTO_REPO_LOGIN $MAGENTO_REPO_PASSWORD
-            ./bin/magento setup:install --backend-frontname admin --db-host 127.0.0.1 --db-prefix tnwc_ --db-name magento --db-user mage --db-password mage --base-url http://magento-qa.box/ --language en_US --timezone America/Chicago --currency USD --admin-lastname Admin --admin-firstname Admin --admin-email admin@example.com --admin-user admin --admin-password admin123 --cleanup-database --use-rewrites 1
-            ./bin/magento --version
+      - run: *start-services
+      - run: *wait-for-services
+      - run: *configure-composer
       - run:
           name: Configure our repository
           command: |
-            cd /var/www/html/magento/
+            cd /data/
             composer config -g http-basic.dist.powersync.biz $TECHWEB_REPO_LOGIN $TECHNWEB_REPO_PASSWORD
             composer config --global repositories.powersync composer https://dist.powersync.biz
             composer config repositories.powersync '{"type": "composer", "url": "https://dist.powersync.biz", "canonical": false}'
@@ -250,7 +191,7 @@ jobs:
           name: Checkout related modules
           command: |
             set -x
-            cd /var/www/html/magento/
+            cd /data/
             MODULE_NAME=$(grep -o '^ *"name": *"[a-zA-Z\/]*"' ~/tnw_extension/composer.json |  awk '{print $2}' | sed -e 's/"\(.*\)"/\1/g')
             for package in $PACKAGES_NAME; do
 
@@ -266,7 +207,7 @@ jobs:
       - run:
           name: Install the Extension
           command: |
-            cd /var/www/html/magento
+            cd /data
             rm -rf ./generated/*
             ./bin/magento module:status
             ./bin/magento module:enable --all
@@ -274,7 +215,7 @@ jobs:
       - run:
           name: Compile the Code
           command: |
-            cd /var/www/html/magento
+            cd /data
             php bin/magento setup:di:compile
             php bin/magento deploy:mode:set developer
 
@@ -587,17 +528,7 @@ jobs:
 workflows:
   test-deploy-wiki:
     jobs:
-      - m235-commerce-php73:
-          context: powersync
-          filters:
-            branches:
-              ignore: /.*-2\.4\.4/
       - m235-open_source-php73:
-          context: powersync
-          filters:
-            branches:
-              ignore: /.*-2\.4\.4/
-      - m243-commerce-php74:
           context: powersync
           filters:
             branches:
@@ -611,7 +542,7 @@ workflows:
           context: powersync
           filters:
             branches:
-              only: master
+              ignore: /.*-2\.4\.4/
       - deploy:
           context: powersync
           requires:
@@ -629,9 +560,7 @@ workflows:
       - tag-release:
           context: powersync
           requires:
-            - m235-commerce-php73
             - m235-open_source-php73
-            - m243-commerce-php74
             - m243-open_source-php74
             - magento-coding-standard
           filters:
