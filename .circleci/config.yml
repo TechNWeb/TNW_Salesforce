@@ -38,9 +38,9 @@ jobs:
             chmod +x git_release.sh
             ./git_release.sh
 
-  m235-open_source-php73:
+  m237-open_source-php74:
     docker:
-      - image: michielgerritsen/magento-project-community-edition:php73-fpm-magento2.3.5-p2
+      - image: michielgerritsen/magento-project-community-edition:php74-fpm-magento2.3.7-p4
     working_directory: ~/tnw_extension
     steps:
       - checkout
@@ -71,6 +71,10 @@ jobs:
               composer config repositories.0 composer https://mirror.mage-os.org/
             fi
             composer --no-plugins config allow-plugins true
+            # Old Magento releases lock dependencies that have security advisories; don't block them in CI
+            composer config policy.advisories.block false 2> /dev/null \
+              || composer config audit.block-insecure false 2> /dev/null \
+              || true
       - run:
           name: Checkout related modules
           command: |
@@ -528,7 +532,7 @@ jobs:
 workflows:
   test-deploy-wiki:
     jobs:
-      - m235-open_source-php73:
+      - m237-open_source-php74:
           context: powersync
           filters:
             branches:
@@ -560,7 +564,7 @@ workflows:
       - tag-release:
           context: powersync
           requires:
-            - m235-open_source-php73
+            - m237-open_source-php74
             - m243-open_source-php74
             - magento-coding-standard
           filters:
