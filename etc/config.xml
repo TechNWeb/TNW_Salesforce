@@ -12,6 +12,7 @@
                 <active>0</active>
             </general>
             <salesforce>
+                <auth_type>password</auth_type>
                 <wsdl>var/enterprise.wsdl.xml</wsdl>
             </salesforce>
             <synchronization>

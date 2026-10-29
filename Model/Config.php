@@ -19,6 +19,8 @@ use Magento\Store\Api\WebsiteRepositoryInterface;
 use Magento\Store\Model\ScopeInterface;
 use Magento\Store\Model\StoreManagerInterface;
 use TNW\Salesforce\Api\Model\Synchronization\ConfigInterface;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\ClientCredentials;
+use TNW\Salesforce\Model\Config\Source\Salesforce\AuthType;
 use TNW\Salesforce\Model\Config\WebsiteDetector;
 use \TNW\Salesforce\Model\Config\Source\Synchronization\Mode;
 
@@ -34,6 +36,11 @@ class Config extends DataObject implements ConfigInterface
     const BASE_DAY = 7;
 
     const MAPPING_WHEN_INSERT_ONLY = 'InsertOnly';
+
+    const SALESFORCE_AUTH_TYPE_XML = 'tnwsforce_general/salesforce/auth_type';
+    const SALESFORCE_OAUTH_DOMAIN_XML = 'tnwsforce_general/salesforce/oauth_domain';
+    const SALESFORCE_OAUTH_CLIENT_ID_XML = 'tnwsforce_general/salesforce/oauth_client_id';
+    const SALESFORCE_OAUTH_CLIENT_SECRET_XML = 'tnwsforce_general/salesforce/oauth_client_secret';
 
     const SYNC_MAX_ATTEMPT_COUNT_XML = 'tnwsforce_general/synchronization/max_attempt_count';
     const SYNC_MEMORY_LIMIT_XML = 'tnwsforce_general/synchronization/memory_limit';
@@ -90,7 +97,11 @@ class Config extends DataObject implements ConfigInterface
         'tnwsforce_general/salesforce/username',
         'tnwsforce_general/salesforce/password',
         'tnwsforce_general/salesforce/token',
-        'tnwsforce_general/salesforce/wsdl'
+        'tnwsforce_general/salesforce/wsdl',
+        self::SALESFORCE_AUTH_TYPE_XML,
+        self::SALESFORCE_OAUTH_DOMAIN_XML,
+        self::SALESFORCE_OAUTH_CLIENT_ID_XML,
+        self::SALESFORCE_OAUTH_CLIENT_SECRET_XML
     ];
 
     /**
@@ -242,6 +253,76 @@ class Config extends DataObject implements ConfigInterface
         }
 
         return $token;
+    }
+
+    /**
+     * Get Salesforce authentication method
+     *
+     * @param int|null $websiteId
+     * @return string
+     */
+    public function getSalesforceAuthType($websiteId = null)
+    {
+        return (string)$this->getStoreConfig(self::SALESFORCE_AUTH_TYPE_XML, $websiteId) ?: AuthType::PASSWORD;
+    }
+
+    /**
+     * Get Salesforce My Domain URL used for OAuth
+     *
+     * @param int|null $websiteId
+     * @return string
+     */
+    public function getSalesforceOAuthDomain($websiteId = null)
+    {
+        return (string)$this->getStoreConfig(self::SALESFORCE_OAUTH_DOMAIN_XML, $websiteId);
+    }
+
+    /**
+     * Get Consumer Key of the Salesforce External Client App
+     *
+     * @param int|null $websiteId
+     * @return string
+     */
+    public function getSalesforceOAuthClientId($websiteId = null)
+    {
+        return (string)$this->getStoreConfig(self::SALESFORCE_OAUTH_CLIENT_ID_XML, $websiteId);
+    }
+
+    /**
+     * Get Consumer Secret of the Salesforce External Client App
+     *
+     * @param int|null $websiteId
+     * @return string
+     */
+    public function getSalesforceOAuthClientSecret($websiteId = null)
+    {
+        $secret = (string)$this->getStoreConfig(self::SALESFORCE_OAUTH_CLIENT_SECRET_XML, $websiteId);
+
+        $decrypt = $this->encryptor->decrypt($secret);
+        if (!empty($decrypt)) {
+            return $decrypt;
+        }
+
+        return $secret;
+    }
+
+    /**
+     * OAuth Client Credentials, null when the website logs in with username and password
+     *
+     * @param int|null $websiteId
+     * @return ClientCredentials|null
+     */
+    public function getOAuthClientCredentials($websiteId = null)
+    {
+        if ($this->getSalesforceAuthType($websiteId) !== AuthType::CLIENT_CREDENTIALS) {
+            return null;
+        }
+
+        return new ClientCredentials(
+            $this->getSalesforceOAuthDomain($websiteId),
+            $this->getSalesforceOAuthClientId($websiteId),
+            $this->getSalesforceOAuthClientSecret($websiteId)
+        );
     }
 
     /**

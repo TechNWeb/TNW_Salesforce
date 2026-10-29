@@ -25,6 +25,7 @@ use Tnw\SoapClient\Result\DescribeSObjectResult;
 use Tnw\SoapClient\Result\DescribeSObjectResult\Field;
 use Tnw\SoapClient\Result\LoginResult;
 use TNW\Salesforce\Lib\Tnw\SoapClient\ClientBuilder;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\ClientCredentials;
 use TNW\Salesforce\Model\Config;
 use TNW\Salesforce\Model\Config\WebsiteDetector;
 
@@ -135,7 +136,8 @@ class Salesforce extends DataObject
                 $this->salesforceConfig->getSalesforceWsdl($websiteId),
                 $this->salesforceConfig->getSalesforceUsername($websiteId),
                 $this->salesforceConfig->getSalesforcePassword($websiteId),
-                $this->salesforceConfig->getSalesforceToken($websiteId)
+                $this->salesforceConfig->getSalesforceToken($websiteId),
+                $this->salesforceConfig->getOAuthClientCredentials($websiteId)
             );
             $this->loginResult[$cacheKey] = $this->client[$cacheKey]->getLoginResult();
         } catch (Throwable $e) {
@@ -181,13 +183,14 @@ class Salesforce extends DataObject
      * @param String $username
      * @param String $password
      * @param String $token
+     * @param ClientCredentials|null $clientCredentials OAuth credentials, null to log in with username and password
      *
      * @return bool
      * @throws Exception
      */
-    public function checkConnection($wsdl, $username, $password, $token)
+    public function checkConnection($wsdl, $username, $password, $token, ?ClientCredentials $clientCredentials = null)
     {
-        $client = $this->buildClient($wsdl, $username, $password, $token);
+        $client = $this->buildClient($wsdl, $username, $password, $token, $clientCredentials);
         $client->getLoginResult();
         return true;
     }
@@ -197,17 +200,19 @@ class Salesforce extends DataObject
      * @param $username
      * @param $password
      * @param $token
+     * @param ClientCredentials|null $clientCredentials OAuth credentials, null to log in with username and password
      *
      * @return Client
      * @throws LocalizedException
      */
-    public function buildClient($wsdl, $username, $password, $token)
+    public function buildClient($wsdl, $username, $password, $token, ?ClientCredentials $clientCredentials = null)
     {
         if (!\file_exists($wsdl)) {
             throw new LocalizedException(__('WSDL file is missing'));
         }
 
-        $builder = new ClientBuilder($wsdl, $username, $password, $token);
+        $builder = new ClientBuilder($wsdl, (string)$username, (string)$password, (string)$token);
+        $builder->withClientCredentials($clientCredentials);
         if ($this->salesforceConfig->getLogDebug()) {
             $builder->withLog($this->logger->getLogger());
         }
