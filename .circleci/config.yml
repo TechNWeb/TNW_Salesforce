@@ -1,9 +1,9 @@
-version: 2
+version: 2.1
 
 jobs:
   deploy: &base-deploy
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2204:current
     steps:
       - run:
           name: Deploy Over SSH
@@ -26,7 +26,7 @@ jobs:
 
   tag-release: &base-tag-release
     machine:
-      image: ubuntu-2004:202201-02
+      image: ubuntu-2204:current
     working_directory: ~/tnw_extension/
     steps:
       - checkout
@@ -585,7 +585,6 @@ jobs:
     <<: *base-marketplace-submit
 
 workflows:
-  version: 2
   test-deploy-wiki:
     jobs:
       - m235-commerce-php73:
