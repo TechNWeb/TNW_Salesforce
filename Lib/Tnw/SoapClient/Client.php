@@ -13,6 +13,9 @@ use Magento\Framework\Exception\LocalizedException;
 use Magento\Framework\Exception\NoSuchEntityException;
 use Magento\Store\Model\StoreManagerInterface;
 use SoapHeader;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\ClientCredentials;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\LoginResult as OAuthLoginResult;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\TokenRequest;
 use Tnw\SoapClient\Event\RequestEvent;
 use Tnw\SoapClient\Event\ResponseEvent;
 use Tnw\SoapClient\Events;
@@ -46,6 +49,18 @@ class Client extends \Tnw\SoapClient\Client
 
     protected $expirationTime;
 
+    /** @var ClientCredentials|null */
+    protected $clientCredentials;
+
+    /** @var string */
+    protected $soapApiPath = '';
+
+    /** @var TokenRequest|null */
+    protected $tokenRequest;
+
+    /** @var bool */
+    private $isRetryingInvalidSession = false;
+
     /**
      * Client constructors.
      * @param SoapClient $soapClient
@@ -63,6 +78,75 @@ class Client extends \Tnw\SoapClient\Client
     ) {
 
         parent::__construct($soapClient, $username, $password, $token);
+    }
+
+    /**
+     * Log in with the OAuth 2.0 Client Credentials flow instead of the SOAP login() call
+     *
+     * @param ClientCredentials $clientCredentials
+     * @param string $soapApiPath SOAP API path from the WSDL, e.g. /services/Soap/c/64.0
+     * @param TokenRequest|null $tokenRequest
+     * @return $this
+     */
+    public function useClientCredentials(
+        ClientCredentials $clientCredentials,
+        string $soapApiPath,
+        ?TokenRequest $tokenRequest = null
+    ) {
+        $this->clientCredentials = $clientCredentials;
+        $this->soapApiPath = $soapApiPath;
+        $this->tokenRequest = $tokenRequest ?? new TokenRequest();
+
+        return $this;
+    }
+
+    /**
+     * @param string $username
+     * @param string $password
+     * @param string $token
+     * @return LoginResult
+     * @throws LocalizedException
+     */
+    public function doLogin($username, $password, $token)
+    {
+        if ($this->clientCredentials === null) {
+            return parent::doLogin($username, $password, $token);
+        }
+
+        try {
+            $tokenResponse = $this->tokenRequest->request($this->clientCredentials);
+        } finally {
+            $this->logTokenRequest();
+        }
+
+        $loginResult = new OAuthLoginResult($tokenResponse, $this->soapApiPath);
+        $this->setLoginResult($loginResult);
+
+        return $loginResult;
+    }
+
+    /**
+     * Log OAuth token request without the secret and the access token
+     */
+    public function logTokenRequest()
+    {
+        $this->dispatch(
+            Events::REQUEST,
+            new RequestEvent(sprintf(
+                "POST %s\ngrant_type=client_credentials&client_id=%s&client_secret=***",
+                $this->clientCredentials->getTokenUrl(),
+                $this->clientCredentials->getClientId()
+            ))
+        );
+
+        $this->dispatch(
+            Events::RESPONSE,
+            new ResponseEvent(preg_replace(
+                '/"access_token"\s*:\s*"[^"]*"/',
+                '"access_token":"***"',
+                $this->tokenRequest->getLastResponse()
+            ))
+        );
     }
 
     /**
@@ -270,9 +354,16 @@ class Client extends \Tnw\SoapClient\Client
                 $message = sprintf($format, $link);
                 throw new Exception($message);
             }
-            if ($e->faultcode == self::ERR_INVALID_SESSION) {
+            if ($e->faultcode == self::ERR_INVALID_SESSION && !$this->isRetryingInvalidSession) {
+                // Log in again once. A new session that is still rejected (e.g. an OAuth token
+                // without the "api" scope) must fail instead of logging in again and again.
                 $this->resetSession();
-                return parent::call($method, $params);
+                $this->isRetryingInvalidSession = true;
+                try {
+                    return parent::call($method, $params);
+                } finally {
+                    $this->isRetryingInvalidSession = false;
+                }
             } else {
                 throw $e;
             }

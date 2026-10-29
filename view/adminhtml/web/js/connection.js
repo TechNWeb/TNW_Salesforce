@@ -22,6 +22,10 @@ define([
             usernameElem: '#tnwsforce_general_salesforce_username',
             passwordElem: '#tnwsforce_general_salesforce_password',
             tokenElem: '#tnwsforce_general_salesforce_token',
+            authTypeElem: '#tnwsforce_general_salesforce_auth_type',
+            oauthDomainElem: '#tnwsforce_general_salesforce_oauth_domain',
+            oauthClientIdElem: '#tnwsforce_general_salesforce_oauth_client_id',
+            oauthClientSecretElem: '#tnwsforce_general_salesforce_oauth_client_secret',
             wsdlElem: '#tnwsforce_general_salesforce_wsdl'
         },
 
@@ -103,7 +107,8 @@ define([
         connect: function(e) {
             $.ajax({
                 url: this.options.url,
-                type: 'get',
+                // POST keeps the password, token and secret out of URLs and web server logs
+                type: 'post',
                 async: true,
                 dataType: 'json',
                 context: this,
@@ -112,6 +117,10 @@ define([
                     username: $(this.options.usernameElem).val(),
                     password: $(this.options.passwordElem).val(),
                     token: $(this.options.tokenElem).val(),
+                    auth_type: $(this.options.authTypeElem).val(),
+                    oauth_domain: $(this.options.oauthDomainElem).val(),
+                    oauth_client_id: $(this.options.oauthClientIdElem).val(),
+                    oauth_client_secret: $(this.options.oauthClientSecretElem).val(),
                     wsdl: $(this.options.wsdlElem).val()
                 },
                 beforeSend: function () {

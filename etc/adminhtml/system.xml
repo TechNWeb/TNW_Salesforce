@@ -39,18 +39,60 @@
 
                 </field>
 
+                <field id="auth_type" translate="label comment" type="select" sortOrder="3" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Authentication Method</label>
+                    <source_model>TNW\Salesforce\Model\Config\Source\Salesforce\AuthType</source_model>
+                    <comment><![CDATA[
+                        Salesforce retires the username and password login (SOAP API login()) in Summer '27.
+                        Use OAuth 2.0 Client Credentials with an External Client App created in your Salesforce org.
+                    ]]></comment>
+                </field>
+
+                <field id="oauth_domain" translate="label comment" type="text" sortOrder="4" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Salesforce My Domain URL</label>
+                    <backend_model>TNW\Salesforce\Model\Config\Backend\MyDomainUrl</backend_model>
+                    <comment><![CDATA[From Salesforce Setup &gt; My Domain, for example https://acme.my.salesforce.com]]></comment>
+                    <depends>
+                        <field id="auth_type">oauth_client_credentials</field>
+                    </depends>
+                </field>
+
+                <field id="oauth_client_id" translate="label" type="text" sortOrder="6" showInDefault="1" showInWebsite="1" showInStore="0">
+                    <label>Consumer Key</label>
+                    <depends>
+                        <field id="auth_type">oauth_client_credentials</field>
+                    </depends>
+                </field>
+
+                <field id="oauth_client_secret" translate="label" type="obscure" sortOrder="7" showInDefault="1" showInWebsite="1">
+                    <label>Consumer Secret</label>
+                    <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="auth_type">oauth_client_credentials</field>
+                    </depends>
+                </field>
+
                 <field id="username" translate="label" type="text" sortOrder="5" showInDefault="1" showInWebsite="1" showInStore="0">
                     <label>Username</label>
+                    <depends>
+                        <field id="auth_type">password</field>
+                    </depends>
                 </field>
 
                 <field id="password" translate="label" type="obscure" sortOrder="10" showInDefault="1" showInWebsite="1">
                     <label>Password</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="auth_type">password</field>
+                    </depends>
                 </field>
 
                 <field id="token" translate="label" type="obscure" sortOrder="20" showInDefault="1" showInWebsite="1">
                     <label>Token</label>
                     <backend_model>Magento\Config\Model\Config\Backend\Encrypted</backend_model>
+                    <depends>
+                        <field id="auth_type">password</field>
+                    </depends>
                 </field>
 
                 <field id="wsdl" translate="label" type="text" sortOrder="30" showInDefault="1" showInWebsite="1" showInStore="0">
