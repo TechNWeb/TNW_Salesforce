@@ -81,20 +81,20 @@ class CleanSystemLogsCommand extends Command
     /**
      * @param InputInterface $input
      * @param OutputInterface $output
-     * @return int|null
+     * @return int
      */
-    public function execute(InputInterface $input, OutputInterface $output)
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
 
         try {
             if (!$this->salesforceConfig->getSalesforceStatus()) {
-                return;
+                return Cli::RETURN_SUCCESS;
             }
 
             if (!$this->salesforceConfig->getClearSystemLogs()) {
                 $output->writeln($this->getDateTime() . ': ' .' Clear System logs not configured.');
                 $this->_logger->info($this->getDateTime() . ': ' .' Clear System logs not configured');
-                return;
+                return Cli::RETURN_SUCCESS;
             }
 
             // save to config time when cron was executed

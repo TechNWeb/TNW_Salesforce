@@ -12,8 +12,8 @@
         <column xsi:type="varchar" name="attribute_type" nullable="true" length="255" />
         <column xsi:type="int" name="attribute_id" padding="11" unsigned="true" nullable="true" identity="false" comment="Attribute Id" />
         <column xsi:type="varchar" name="default_value" nullable="true" length="255" />
-        <column xsi:type="varchar" name="object_type" nullable="true" length="255" />
-        <column xsi:type="varchar" name="magento_entity_type" nullable="true" length="255" />
+        <column xsi:type="varchar" name="object_type" nullable="true" length="100" />
+        <column xsi:type="varchar" name="magento_entity_type" nullable="true" length="100" />
         <column xsi:type="smallint" name="is_default" padding="6" unsigned="false" nullable="true" identity="false" default="0" comment="Default Map Field" />
         <column xsi:type="smallint" name="website_id" padding="5" unsigned="true" nullable="false" identity="false" default="0" comment="Website ID" />
         <column xsi:type="smallint" name="skip_blank_values" unsigned="true" nullable="false" identity="false"

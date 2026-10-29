@@ -104,9 +104,10 @@ class ControllerActionPredispatchAdminhtmlSystemConfigEdit implements ObserverIn
         $userName = $this->salesforceConfig->getSalesforceUsername($websiteId);
         $password = $this->salesforceConfig->getSalesforcePassword($websiteId);
         $token = $this->salesforceConfig->getSalesforceToken($websiteId);
+        $clientCredentials = $this->salesforceConfig->getOAuthClientCredentials($websiteId);
 
         try {
-            $this->salesforceClient->checkConnection($wsdl, $userName, $password, $token);
+            $this->salesforceClient->checkConnection($wsdl, $userName, $password, $token, $clientCredentials);
         } catch (SoapFault $e) {
             switch (true) {
                 case strcasecmp((string)$e->faultcode, 'sf:INVALID_OPERATION_WITH_EXPIRED_PASSWORD') === 0:

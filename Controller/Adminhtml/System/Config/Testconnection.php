@@ -16,7 +16,9 @@ use Magento\Framework\Exception\FileSystemException;
 use Magento\Framework\Filesystem;
 use TNW\Salesforce\Model\File\UploaderFactory;
 use TNW\Salesforce\Client\Salesforce;
+use TNW\Salesforce\Lib\Tnw\SoapClient\OAuth\ClientCredentials;
 use TNW\Salesforce\Model\Config;
+use TNW\Salesforce\Model\Config\Source\Salesforce\AuthType;
 use Zend_Cache;
 
 /**
@@ -118,12 +120,14 @@ class Testconnection extends Action
             $username = $this->salesforceConfig->getSalesforceUsername($websiteId);
             $password = $this->salesforceConfig->getSalesforcePassword($websiteId);
             $token = $this->salesforceConfig->getSalesforceToken($websiteId);
+            $clientCredentials = $this->salesforceConfig->getOAuthClientCredentials($websiteId);
         } else {
             // get config from current values
             $wsdl = $this->_getWsdlPath($wsdl);
             $username = $this->getRequest()->getParam('username');
             $password = $this->getRequest()->getParam('password');
             $token = $this->getRequest()->getParam('token');
+            $clientCredentials = $this->getRequestClientCredentials($websiteId);
         }
 
         $this->cacheCollection->clean(
@@ -132,7 +136,13 @@ class Testconnection extends Action
         );
 
         try {
-            $result = $this->salesforceClient->checkConnection($wsdl, $username, $password, $token);
+            $result = $this->salesforceClient->checkConnection(
+                $wsdl,
+                $username,
+                $password,
+                $token,
+                $clientCredentials
+            );
         } catch (Exception $e) {
             if (property_exists($e,'faultcode') && strcasecmp((string)$e->faultcode, 'sf:REQUEST_LIMIT_EXCEEDED') === 0) {
                 $result = __('Salesforce Total Requests Limit exceeded. Please try in 24h.');
@@ -142,6 +152,30 @@ class Testconnection extends Action
         }
 
         $this->getResponse()->setBody($result);
+    }
+
+    /**
+     * OAuth credentials from the unsaved form, the saved secret is used while the field is masked
+     *
+     * @param int|null $websiteId
+     * @return ClientCredentials|null
+     */
+    private function getRequestClientCredentials($websiteId)
+    {
+        if ($this->getRequest()->getParam('auth_type') !== AuthType::CLIENT_CREDENTIALS) {
+            return null;
+        }
+
+        $clientSecret = (string)$this->getRequest()->getParam('oauth_client_secret');
+        if ($clientSecret === '' || preg_match('/^\*+$/', $clientSecret)) {
+            $clientSecret = $this->salesforceConfig->getSalesforceOAuthClientSecret($websiteId);
+        }
+
+        return new ClientCredentials(
+            (string)$this->getRequest()->getParam('oauth_domain'),
+            (string)$this->getRequest()->getParam('oauth_client_id'),
+            $clientSecret
+        );
     }
 
     /**
