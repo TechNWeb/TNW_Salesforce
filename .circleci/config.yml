@@ -12,20 +12,6 @@ jobs:
           command: |
             ssh $SSH_USER@$SSH_HOST "./release"
 
-  marketplace-submit: &base-marketplace-submit
-    docker:
-      - image: circleci/php:7.1-apache-stretch-node-browsers
-    working_directory: ~/tnw_extension/
-    steps:
-      - checkout
-      - run:
-          name: Submit code to Magento Marketplace
-          command: |
-            cd ~/tnw_extension/
-            cd .circleci
-            chmod +x submit_code.sh
-            ./submit_code.sh
-
   tag-release: &base-tag-release
     machine:
       image: ubuntu-2204:current
@@ -599,8 +585,6 @@ jobs:
             ssh $SSH_USER@$SSH_HOST "./release244"
   tag-release-244:
     <<: *base-tag-release
-  marketplace-submit-244:
-    <<: *base-marketplace-submit
 
 workflows:
   test-deploy-wiki:
@@ -631,13 +615,6 @@ workflows:
             branches:
               only: master
       - deploy:
-          context: powersync
-          requires:
-            - tag-release
-          filters:
-            branches:
-              only: master
-      - marketplace-submit:
           context: powersync
           requires:
             - tag-release
@@ -736,13 +713,6 @@ workflows:
           context: powersync
           requires:
             - check-composer-installation-244
-          filters:
-            branches:
-              only: master-2.4.4
-      - marketplace-submit-244:
-          context: powersync
-          requires:
-            - tag-release-244
           filters:
             branches:
               only: master-2.4.4
