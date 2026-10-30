@@ -20,7 +20,8 @@ define
                 if($(this).prop('files').length > 0)
                 {
                     var file = $(this).prop('files')[0];  
-                    formdata.append("file", file);   
+                    formdata.append("file", file);
+                    formdata.append("form_key", window.FORM_KEY);
                     $.ajax({
                         url: config.ajaxUrl,
                         type: "POST",
