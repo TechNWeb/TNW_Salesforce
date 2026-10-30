@@ -113,6 +113,8 @@ define([
                 dataType: 'json',
                 context: this,
                 data: {
+                    // Magento only adds the form key itself when the request has no beforeSend of its own
+                    'form_key': window.FORM_KEY,
                     'formId': this.options.type,
                     username: $(this.options.usernameElem).val(),
                     password: $(this.options.passwordElem).val(),
