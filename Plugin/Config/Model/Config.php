@@ -9,6 +9,7 @@ use Magento\Config\Model\Config as Subject;
 use Magento\Framework\App\Config\ConfigResource\ConfigInterface;
 use Magento\Framework\App\Config\ScopeConfigInterface;
 use Magento\Store\Model\StoreManagerInterface;
+use Psr\Log\LoggerInterface;
 use TNW\Salesforce\Api\MessageQueue\PublisherAdapter;
 use TNW\Salesforce\Service\MessageQueue\RestartConsumers as RestartConsumersService;
 use TNW\SForceEnterprise\Model\Prequeue\Process as PrequeueProcess;
@@ -44,24 +45,31 @@ class Config
     /** @var RestartConsumersService  */
     protected $restartConsumersService;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     /**
      * @param PublisherAdapter $publisher
      * @param ConfigInterface $configResource
      * @param StoreManagerInterface $storeManager
      * @param SalesforceConfig $config
+     * @param RestartConsumersService $restartConsumersService
+     * @param LoggerInterface $logger
      */
     public function __construct(
         PublisherAdapter $publisher,
         ConfigInterface $configResource,
         StoreManagerInterface $storeManager,
         SalesforceConfig $config,
-        RestartConsumersService $restartConsumersService
+        RestartConsumersService $restartConsumersService,
+        LoggerInterface $logger
     ) {
         $this->publisher = $publisher;
         $this->configResource = $configResource;
         $this->storeManager = $storeManager;
         $this->config = $config;
         $this->restartConsumersService = $restartConsumersService;
+        $this->logger = $logger;
     }
 
     /**
@@ -117,7 +125,14 @@ class Config
         if ($salesforceStatusBefore === false && $salesforceStatusAfter === true && $mqMode == 'amqp') {
             $this->publisher->publish(PrequeueProcess::MQ_TOPIC_NAME, false);
         }
-        $this->restartConsumersService->execute();
+
+        if (strpos((string)$subject->getSection(), 'tnwsforce_') === 0) {
+            try {
+                $this->restartConsumersService->execute();
+            } catch (\Throwable $e) {
+                $this->logger->error('Salesforce consumers restart failed after saving the configuration', ['exception' => $e]);
+            }
+        }
 
         return $result;
     }
